@@ -1,50 +1,35 @@
 package com.diffmin;
 
+import gumtree.spoon.AstComparator;
+import gumtree.spoon.diff.operations.Operation;
+import spoon.reflect.code.CtLiteral;
+import spoon.reflect.declaration.CtElement;
+import spoon.support.reflect.code.CtLiteralImpl;
+
 import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 
-import com.github.gumtreediff.tree.ITree;
-import com.github.gumtreediff.tree.TreeUtils;
-import gumtree.spoon.AstComparator;
-import gumtree.spoon.diff.operations.Operation;
-import gumtree.spoon.builder.SpoonGumTreeBuilder;
-import spoon.reflect.declaration.CtElement;
-
 public class App
 {
-    public static String sample(String sampleString) {
-        return sampleString;
-    }
-
     public static List<Operation> getOperations(File f1, File f2) throws Exception {
-        final List<Operation> operations;
-        try {
-            operations = new AstComparator().compare(f1, f2).getRootOperations();
-        } catch (Exception e) {
-            throw e;
-        }
-        return operations;
+        return new AstComparator().compare(f1, f2).getRootOperations();
     }
 
-    public static ITree patch(File f1, List<Operation> operations) throws Exception {
-        final SpoonGumTreeBuilder scanner = new SpoonGumTreeBuilder();
+    public static CtElement patch(File f1, List<Operation> operations) throws Exception {
         CtElement prevFile = new AstComparator().getCtType(f1);
-        ITree prevTree = scanner.getTree(prevFile);
-        for (int i=0; i<operations.size(); ++i) {
-            Operation operation = operations.get(i);
-            // Currently only update operation is handled
-            ITree updatedNode = (ITree)operation.getDstNode().getMetadata(SpoonGumTreeBuilder.GUMTREE_NODE);
-            List<ITree> bfsDst = TreeUtils.breadthFirst(prevTree);
-            Iterator it = bfsDst.iterator();
+        for (Operation operation : operations) {
+            CtElement updatedNode = operation.getDstNode();
+            Iterator it = prevFile.descendantIterator();
             while (it.hasNext()) {
-                ITree x = (ITree) it.next();
-                if (x.getType() == updatedNode.getType()) {
-                    x.setLabel(updatedNode.getLabel());
+                CtElement element = (CtElement) it.next();
+                if (element instanceof CtLiteral) {
+                    UpdateLiteral ul = new UpdateLiteral((CtLiteral<CtLiteralImpl>) updatedNode);
+                    ul.process((CtLiteral<CtLiteralImpl>) element);
                 }
             }
         }
-        return prevTree;
+        return prevFile;
     }
 
     public static void main( String[] args ) {
@@ -53,11 +38,11 @@ public class App
             return;
         }
         List<Operation> operations;
-        ITree patchedTree;
+        CtElement patchedCtElement;
         try {
             operations = App.getOperations(new File(args[0]), new File(args[1]));
-            patchedTree = App.patch(new File(args[0]), operations);
-            System.out.println(patchedTree.toTreeString());
+            patchedCtElement = App.patch(new File(args[0]), operations);
+            System.out.println(patchedCtElement.prettyprint());
         } catch (Exception e) {
             e.printStackTrace();
         }
