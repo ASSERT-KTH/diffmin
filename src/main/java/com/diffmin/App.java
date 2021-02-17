@@ -1,10 +1,11 @@
 package com.diffmin;
 
+import com.github.gumtreediff.actions.model.Update;
 import gumtree.spoon.AstComparator;
 import gumtree.spoon.diff.operations.Operation;
+import spoon.reflect.code.CtInvocation;
 import spoon.reflect.code.CtLiteral;
 import spoon.reflect.declaration.CtElement;
-import spoon.support.reflect.code.CtLiteralImpl;
 
 import java.io.File;
 import java.util.Iterator;
@@ -17,19 +18,24 @@ public class App
     }
 
     public static CtElement patch(File f1, List<Operation> operations) throws Exception {
-        CtElement prevFile = new AstComparator().getCtType(f1);
+        CtElement prevFileElement = new AstComparator().getCtType(f1);
         for (Operation operation : operations) {
-            CtElement updatedNode = operation.getDstNode();
-            Iterator it = prevFile.descendantIterator();
-            while (it.hasNext()) {
-                CtElement element = (CtElement) it.next();
-                if (element instanceof CtLiteral) {
-                    UpdateLiteral ul = new UpdateLiteral((CtLiteral<CtLiteralImpl>) updatedNode);
-                    ul.process((CtLiteral<CtLiteralImpl>) element);
+            if (operation.getAction() instanceof Update) {
+                CtElement updatedNodeSrc = operation.getSrcNode();
+                CtElement updatedNodeDest = operation.getDstNode();
+                Iterator it = prevFileElement.descendantIterator();
+                while (it.hasNext()) {
+                    CtElement element = (CtElement) it.next();
+                    if (updatedNodeSrc.equals(element) && element instanceof CtLiteral && updatedNodeDest instanceof CtLiteral) {
+                        UpdateLiteral.process((CtLiteral) element, (CtLiteral) updatedNodeDest);
+                    }
+                    else if (updatedNodeSrc.equals(element) && element instanceof CtInvocation && updatedNodeDest instanceof CtInvocation) {
+                        UpdateInvocation.process((CtInvocation) element, (CtInvocation) updatedNodeDest);
+                    }
                 }
             }
         }
-        return prevFile;
+        return prevFileElement;
     }
 
     public static void main( String[] args ) {
