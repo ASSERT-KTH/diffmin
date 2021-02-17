@@ -33,7 +33,8 @@ public class AppTest
         return new Arguments[]{
             Arguments.of("Should update literal", "src/test/resources/update/string_literal_prev.java", "src/test/resources/update/string_literal_new.java"),
             Arguments.of("Should update invocation", "src/test/resources/update/invocation_prev.java", "src/test/resources/update/invocation_new.java"),
-            Arguments.of("Should update literal and invocation", "src/test/resources/update/literal+invocation_prev.java", "src/test/resources/update/literal+invocation_new.java")
+            Arguments.of("Should update literal and invocation", "src/test/resources/update/literal+invocation_prev.java", "src/test/resources/update/literal+invocation_new.java"),
+            Arguments.of("Should update type reference", "src/test/resources/update/typeref_prev.java", "src/test/resources/update/typeref_new.java"),
         };
     }
 }

@@ -6,6 +6,7 @@ import spoon.reflect.declaration.CtElement;
  * Applies update patch to CtElements. Types taken care of:
  * <a href="https://github.com/INRIA/spoon/blob/master/src/main/java/spoon/reflect/code/CtLiteral.java">CtLiteral</a>
  * <a href="https://github.com/INRIA/spoon/blob/master/src/main/java/spoon/reflect/code/CtInvocation.java">CtInvocation</a>
+ * <a href="https://github.com/INRIA/spoon/blob/master/src/main/java/spoon/reflect/reference/CtTypeReference.java">CtTypeReference</a>
  */
 public class UpdatePatch {
     /**
@@ -14,7 +15,16 @@ public class UpdatePatch {
      * @param prevNode Node which has to be replaced
      * @param newNode Replacement node
      */
-    public static void process(CtElement prevNode, CtElement newNode) {
-        prevNode.replace(newNode);
+
+    private CtElement prevNode;
+    private CtElement newNode;
+
+    public UpdatePatch(CtElement prevNode, CtElement newNode) {
+        this.prevNode = prevNode;
+        this.newNode = newNode;
+    }
+
+    public void process() {
+        this.prevNode.replace(this.newNode);
     }
 }
