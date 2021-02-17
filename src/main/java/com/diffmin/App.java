@@ -26,11 +26,8 @@ public class App
                 Iterator it = prevFileElement.descendantIterator();
                 while (it.hasNext()) {
                     CtElement element = (CtElement) it.next();
-                    if (updatedNodeSrc.equals(element) && element instanceof CtLiteral && updatedNodeDest instanceof CtLiteral) {
-                        UpdateLiteral.process((CtLiteral) element, (CtLiteral) updatedNodeDest);
-                    }
-                    else if (updatedNodeSrc.equals(element) && element instanceof CtInvocation && updatedNodeDest instanceof CtInvocation) {
-                        UpdateInvocation.process((CtInvocation) element, (CtInvocation) updatedNodeDest);
+                    if (updatedNodeSrc.equals(element)) {
+                        UpdatePatch.process(element, updatedNodeDest);
                     }
                 }
             }
