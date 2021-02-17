@@ -4,6 +4,6 @@ import java.util.List;
 
 class Action {
     public static void main(String[] args) {
-        System.out.println("Aman Sharma");
+        System.out.println("Old variable");
     }
 }
