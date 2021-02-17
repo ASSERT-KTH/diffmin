@@ -26,6 +26,12 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>5.7.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>fr.inria.gforge.spoon.labs</groupId>
       <artifactId>gumtree-spoon-ast-diff</artifactId>
       <version>1.30</version>
