@@ -9,16 +9,16 @@ import spoon.reflect.declaration.CtElement;
  * <a href="https://github.com/INRIA/spoon/blob/master/src/main/java/spoon/reflect/reference/CtTypeReference.java">CtTypeReference</a>
  */
 public class UpdatePatch {
+
+    private CtElement prevNode;
+    private CtElement newNode;
+
     /**
      * Replaces the previous node with the new node.
      *
      * @param prevNode Node which has to be replaced
      * @param newNode Replacement node
      */
-
-    private CtElement prevNode;
-    private CtElement newNode;
-
     public UpdatePatch(CtElement prevNode, CtElement newNode) {
         this.prevNode = prevNode;
         this.newNode = newNode;
