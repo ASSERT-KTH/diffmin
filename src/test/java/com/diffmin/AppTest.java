@@ -65,6 +65,12 @@ public class AppTest {
                 "Should delete literal",
                 "src/test/resources/delete/literal/prev.java",
                 "src/test/resources/delete/literal/new.java"
+            ),
+            // Delete + Update patches
+            Arguments.of(
+                "Should update literal, parameter, and delete while",
+                "src/test/resources/delete+update/literal+while+parameter/prev.java",
+                "src/test/resources/delete+update/literal+while+parameter/new.java"
             )
         };
     }
