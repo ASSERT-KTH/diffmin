@@ -39,8 +39,8 @@ public class AppTest {
 
     private static Arguments[] resourceProvider() {
         return new Arguments[]{
-            // Pure update patches
-            Arguments.of(
+        // Pure update patches
+        Arguments.of(
                 "Should update literal",
                 "src/test/resources/update/literal/prev.java",
                 "src/test/resources/update/literal/new.java"
@@ -71,7 +71,12 @@ public class AppTest {
                 "Should update literal, parameter, and delete while",
                 "src/test/resources/delete+update/literal+while+parameter/prev.java",
                 "src/test/resources/delete+update/literal+while+parameter/new.java"
-            )
+            ),
+            Arguments.of(
+                "Should update type reference",
+                "src/test/resources/update/typeref/prev.java",
+                "src/test/resources/update/typeref/new.java"
+            ),
         };
     }
 }

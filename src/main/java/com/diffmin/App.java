@@ -1,6 +1,7 @@
 package com.diffmin;
 
 import com.github.gumtreediff.actions.model.Delete;
+import com.github.gumtreediff.actions.model.Insert;
 import com.github.gumtreediff.actions.model.Update;
 import gumtree.spoon.AstComparator;
 import gumtree.spoon.diff.operations.Operation;
@@ -101,6 +102,11 @@ public class App {
                         dp.process();
                     }
                 }
+            }
+            else if (operation.getAction() instanceof Insert) {
+                CtElement insertedNode = operation.getSrcNode();
+                InsertPatch ip = new InsertPatch(prevFileElement, insertedNode);
+                ip.process();
             }
         }
         return prevFileElement;
