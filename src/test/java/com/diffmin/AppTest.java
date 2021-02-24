@@ -15,7 +15,7 @@ import spoon.reflect.declaration.CtElement;
  */
 public class AppTest {
     /**
-     * Tests for verifying if update patch works correctly.
+     * Tests for verifying if patch works correctly.
      *
      * @param testMessage  Test message to be displayed
      * @param filePathPrev File path of previous version
@@ -23,10 +23,10 @@ public class AppTest {
      * @throws Exception Exception raised via {@link AstComparator}, {@link App} and,
      * {@link AssertionError}
      */
-    @DisplayName("Should patch old file with Update operations")
+    @DisplayName("Should patch old file with operations")
     @ParameterizedTest(name = "{0}")
     @MethodSource("resourceProvider")
-    public void shouldUpdate(
+    public void shouldPatch(
             String testMessage, String filePathPrev, String filePathNew
     ) throws Exception {
         File f1 = new File(filePathPrev);
@@ -39,25 +39,39 @@ public class AppTest {
 
     private static Arguments[] resourceProvider() {
         return new Arguments[]{
+            // Pure update patches
             Arguments.of(
-                    "Should update literal",
-                    "src/test/resources/update/literal/prev.java",
-                    "src/test/resources/update/literal/new.java"
-            ),
-            Arguments.of(
-                    "Should update invocation",
-                    "src/test/resources/update/invocation/prev.java",
-                    "src/test/resources/update/invocation/new.java"
+                "Should update literal",
+                "src/test/resources/update/literal/prev.java",
+                "src/test/resources/update/literal/new.java"
             ),
             Arguments.of(
-                    "Should update literal and invocation",
-                    "src/test/resources/update/literal+invocation/prev.java",
-                    "src/test/resources/update/literal+invocation/new.java"
+                "Should update invocation",
+                "src/test/resources/update/invocation/prev.java",
+                "src/test/resources/update/invocation/new.java"
             ),
-            Arguments.of("Should update type reference",
-                    "src/test/resources/update/typeref/prev.java",
-                    "src/test/resources/update/typeref/new.java"
+            Arguments.of(
+                "Should update literal and invocation",
+                "src/test/resources/update/literal+invocation/prev.java",
+                "src/test/resources/update/literal+invocation/new.java"
             ),
+            Arguments.of(
+                "Should update type reference",
+                "src/test/resources/update/typeref/prev.java",
+                "src/test/resources/update/typeref/new.java"
+            ),
+            // Pure delete patches
+            Arguments.of(
+                "Should delete literal",
+                "src/test/resources/delete/literal/prev.java",
+                "src/test/resources/delete/literal/new.java"
+            ),
+            // Delete + Update patches
+            Arguments.of(
+                "Should update literal, parameter, and delete while",
+                "src/test/resources/delete+update/literal+while+parameter/prev.java",
+                "src/test/resources/delete+update/literal+while+parameter/new.java"
+            )
         };
     }
 }

@@ -1,5 +1,6 @@
 package com.diffmin;
 
+import com.github.gumtreediff.actions.model.Delete;
 import com.github.gumtreediff.actions.model.Update;
 import gumtree.spoon.AstComparator;
 import gumtree.spoon.diff.operations.Operation;
@@ -40,13 +41,24 @@ public class App {
              */
             @Override
             public int compare(Operation o1, Operation o2) {
-                int o1SrcChildren = o1.getSrcNode().getDirectChildren().size();
-                int o2SrcChildren = o2.getSrcNode().getDirectChildren().size();
-                int o1DestChildren = o1.getDstNode().getDirectChildren().size();
-                int o2DestChildren = o2.getDstNode().getDirectChildren().size();
+                CtElement o1SrcChildren = o1.getSrcNode();
+                CtElement o2SrcChildren = o2.getSrcNode();
+                CtElement o1DestChildren = o1.getDstNode();
+                CtElement o2DestChildren = o2.getDstNode();
                 return Double.compare(
-                        o1SrcChildren + o1DestChildren, o2SrcChildren + o2DestChildren
+                    this.nodeSize(o1SrcChildren) + this.nodeSize(o1DestChildren),
+                    this.nodeSize(o2SrcChildren) + this.nodeSize(o2DestChildren)
                 );
+            }
+
+            /**
+             * Calculates the number of direct children of the {@link CtElement} passed.
+             *
+             * @param ctElement Element whose number of children has to be calculated
+             * @return number of direct children
+             */
+            public int nodeSize(CtElement ctElement) {
+                return  ctElement != null ? ctElement.getDirectChildren().size() : 0;
             }
         }
 
@@ -76,6 +88,17 @@ public class App {
                     if (updatedNodeSrc.equals(element)) {
                         UpdatePatch up = new UpdatePatch(element, updatedNodeDest);
                         up.process();
+                    }
+                }
+            }
+            else if (operation.getAction() instanceof Delete) {
+                CtElement removedNode = operation.getSrcNode();
+                Iterator it = prevFileElement.descendantIterator();
+                while (it.hasNext()) {
+                    CtElement element = (CtElement) it.next();
+                    if (removedNode.equals(element)) {
+                        DeletePatch dp = new DeletePatch(element);
+                        dp.process();
                     }
                 }
             }
