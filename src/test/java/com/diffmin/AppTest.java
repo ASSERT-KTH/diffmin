@@ -39,8 +39,8 @@ public class AppTest {
 
     private static Arguments[] resourceProvider() {
         return new Arguments[]{
-        // Pure update patches
-        Arguments.of(
+            // Pure update patches
+            Arguments.of(
                 "Should update literal",
                 "src/test/resources/update/literal/prev.java",
                 "src/test/resources/update/literal/new.java"
@@ -76,6 +76,17 @@ public class AppTest {
                 "Should update type reference",
                 "src/test/resources/update/typeref/prev.java",
                 "src/test/resources/update/typeref/new.java"
+            ),
+            // Pure insert patches
+            Arguments.of(
+                "Should insert local variable",
+                "src/test/resources/insert/local_variable/prev.java",
+                "src/test/resources/insert/local_variable/new.java"
+            ),
+            Arguments.of(
+                "Should insert loop and update local variable",
+                "src/test/resources/insert/for_loop+local_variable/prev.java",
+                "src/test/resources/insert/for_loop+local_variable/new.java"
             ),
         };
     }

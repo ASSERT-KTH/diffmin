@@ -1,6 +1,8 @@
 package com.diffmin;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import spoon.reflect.declaration.CtElement;
 
 /**
@@ -25,23 +27,36 @@ public class InsertPatch {
      * Inserts `insertedNode` into CtElement tree.
      */
     public void process() {
-        Iterator originalElementIt = this.prevFileElement.descendantIterator();
-        while (originalElementIt.hasNext()) {
-            CtElement originalElement = (CtElement) originalElementIt.next();
-            CtElement tobeInserted = this.insertedNode;
-            while (tobeInserted != null && tobeInserted.getParent() != null) {
+        List<CtElement> parents = this.generateParentList(this.insertedNode);
+        for (int parent = 0; parent < parents.size(); ++parent) {
+            Iterator originalElementIt = this.prevFileElement.descendantIterator();
+            while (originalElementIt.hasNext()) {
+                CtElement originalElement = (CtElement) originalElementIt.next();
                 if (
-                        tobeInserted
-                            .getShortRepresentation()
-                            .equals(originalElement.getShortRepresentation())
+                        parents.get(parent)
+                                .getShortRepresentation()
+                                .equals(originalElement.getShortRepresentation())
                 ) {
-                    originalElement.replace(tobeInserted);
+                    originalElement.replace(parents.get(parent));
                     break;
-                }
-                else {
-                    tobeInserted = tobeInserted.getParent();
                 }
             }
         }
+    }
+
+    /**
+     * Return a list of parents of a particular node.
+     *
+     * @param node node whose parents needs to be appended to a list
+     * @return list of parents
+     */
+    public List<CtElement> generateParentList(CtElement node) {
+        List<CtElement> l = new ArrayList<>();
+        CtElement toBeInserted = node;
+        while (toBeInserted != null) {
+            l.add(toBeInserted);
+            toBeInserted = toBeInserted.getParent();
+        }
+        return l;
     }
 }
