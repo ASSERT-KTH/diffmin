@@ -1,5 +1,6 @@
 package com.diffmin;
 
+import spoon.reflect.declaration.CtClass;
 import spoon.reflect.declaration.CtElement;
 
 /**
@@ -14,17 +15,24 @@ public class UpdatePatch {
     private CtElement newNode;
 
     /**
-     * Replaces the previous node with the new node.
+     * Set up node updating.
      *
-     * @param prevNode Node which has to be replaced
-     * @param newNode Replacement node
+     * @param prevNode Node which has to be updated
+     * @param newNode Node which replaces `prevNode`
      */
     public UpdatePatch(CtElement prevNode, CtElement newNode) {
         this.prevNode = prevNode;
         this.newNode = newNode;
     }
-
+    
+    /**
+     * Replaces the previous node with the new node.
+     */
     public void process() {
+        if (this.prevNode instanceof CtClass && this.newNode instanceof CtClass) {
+            // Class name is not updated while replacing a CtClass element
+            ((CtClass<?>) this.prevNode).setSimpleName(((CtClass<?>) this.newNode).getSimpleName());
+        }
         this.prevNode.replace(this.newNode);
     }
 }

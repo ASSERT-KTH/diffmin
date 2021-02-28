@@ -88,6 +88,12 @@ public class AppTest {
                 "src/test/resources/insert/for_loop+local_variable/prev.java",
                 "src/test/resources/insert/for_loop+local_variable/new.java"
             ),
+            // Insert + Update patches
+            Arguments.of(
+                "Should update class and insert invocation",
+                "src/test/resources/insert+update/invocation_class/prev.java",
+                "src/test/resources/insert+update/invocation_class/new.java"
+            ),
         };
     }
 }

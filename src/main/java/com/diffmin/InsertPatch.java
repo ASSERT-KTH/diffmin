@@ -37,7 +37,7 @@ public class InsertPatch {
                                 .getShortRepresentation()
                                 .equals(originalElement.getShortRepresentation())
                 ) {
-                    originalElement.replace(parents.get(parent));
+                    originalElement.replace(parents.get(parent).clone());
                     break;
                 }
             }
