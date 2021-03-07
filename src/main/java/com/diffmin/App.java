@@ -105,8 +105,15 @@ public class App {
             }
             else if (operation.getAction() instanceof Insert) {
                 CtElement insertedNode = operation.getSrcNode();
-                InsertPatch ip = new InsertPatch(prevFileElement, insertedNode);
-                ip.process();
+                // Case when the source file is empty so there will be only one insert operation
+                // so we just need to return the node attached to the same operation.
+                if (prevFileElement == null) {
+                    prevFileElement = insertedNode;
+                }
+                else {
+                    InsertPatch ip = new InsertPatch(prevFileElement, insertedNode);
+                    ip.process();
+                }
             }
         }
         return prevFileElement;

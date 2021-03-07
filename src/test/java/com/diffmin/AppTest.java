@@ -84,6 +84,11 @@ public class AppTest {
                 "src/test/resources/insert/local_variable/new.java"
             ),
             Arguments.of(
+                "Should insert class",
+                "src/test/resources/insert/class/prev.java",
+                "src/test/resources/insert/class/new.java"
+            ),
+            Arguments.of(
                 "Should insert loop and update local variable",
                 "src/test/resources/insert/for_loop+local_variable/prev.java",
                 "src/test/resources/insert/for_loop+local_variable/new.java"

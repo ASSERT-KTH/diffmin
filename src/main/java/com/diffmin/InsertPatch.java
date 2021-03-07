@@ -1,9 +1,10 @@
 package com.diffmin;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
+import spoon.reflect.declaration.CtClass;
 import spoon.reflect.declaration.CtElement;
+import spoon.reflect.declaration.CtFormalTypeDeclarer;
+import spoon.reflect.declaration.CtMethod;
 
 /**
  * Applies insert patch to CtElements.
@@ -27,36 +28,25 @@ public class InsertPatch {
      * Inserts `insertedNode` into CtElement tree.
      */
     public void process() {
-        List<CtElement> parents = this.generateParentList(this.insertedNode);
-        for (int parent = 0; parent < parents.size(); ++parent) {
-            Iterator originalElementIt = this.prevFileElement.descendantIterator();
-            while (originalElementIt.hasNext()) {
-                CtElement originalElement = (CtElement) originalElementIt.next();
-                if (
-                        parents.get(parent)
-                                .getShortRepresentation()
-                                .equals(originalElement.getShortRepresentation())
-                ) {
-                    originalElement.replace(parents.get(parent).clone());
-                    break;
-                }
+        CtElement uniqueParent = this.insertedNode.getParent();
+        while (!(uniqueParent instanceof CtClass) && !(uniqueParent instanceof CtMethod)) {
+            uniqueParent = uniqueParent.getParent();
+        }
+        Iterator originalElementIt = this.prevFileElement.descendantIterator();
+        while (originalElementIt.hasNext()) {
+            CtElement originalElement = (CtElement) originalElementIt.next();
+            if (
+                    (originalElement instanceof CtMethod || originalElement instanceof CtClass)
+                    && ((CtFormalTypeDeclarer) originalElement).getSimpleName()
+                    .equals(((CtFormalTypeDeclarer) uniqueParent).getSimpleName())
+            ) {
+                originalElement.replace(uniqueParent);
+                ((CtFormalTypeDeclarer) originalElement).setSimpleName(
+                        ((CtFormalTypeDeclarer) uniqueParent).getSimpleName()
+                );
+                return;
             }
         }
     }
 
-    /**
-     * Return a list of parents of a particular node.
-     *
-     * @param node node whose parents needs to be appended to a list
-     * @return list of parents
-     */
-    public List<CtElement> generateParentList(CtElement node) {
-        List<CtElement> l = new ArrayList<>();
-        CtElement toBeInserted = node;
-        while (toBeInserted != null) {
-            l.add(toBeInserted);
-            toBeInserted = toBeInserted.getParent();
-        }
-        return l;
-    }
 }
