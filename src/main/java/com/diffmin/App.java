@@ -116,7 +116,7 @@ public class App {
                 }
             }
         }
-        return prevFileElement;
+        return prevFileElement.getParent().getDirectChildren().get(0);
     }
 
     /**

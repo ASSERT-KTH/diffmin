@@ -29,10 +29,6 @@ public class UpdatePatch {
      * Replaces the previous node with the new node.
      */
     public void process() {
-        if (this.prevNode instanceof CtClass && this.newNode instanceof CtClass) {
-            // Class name is not updated while replacing a CtClass element
-            ((CtClass<?>) this.prevNode).setSimpleName(((CtClass<?>) this.newNode).getSimpleName());
-        }
         this.prevNode.replace(this.newNode);
     }
 }
