@@ -1,15 +1,12 @@
 package com.diffmin;
 
 import com.github.gumtreediff.actions.model.Delete;
-import com.github.gumtreediff.actions.model.Update;
 import gumtree.spoon.AstComparator;
 import gumtree.spoon.diff.operations.Operation;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
+import spoon.Launcher;
+import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtElement;
 
 /**
@@ -20,90 +17,35 @@ public class App {
     /**
      * Computes the list of operations which is used for patching `f2`.
      *
-     * @param f1 Previous version of the file
-     * @param f2 Modified version of the file
+     * @param leftFile Previous version of the file
+     * @param rightFile Modified version of the file
      * @return List of operations in the edit script
      * @throws Exception Exception raised via {@link AstComparator}
      */
-    public static List<Operation> getOperations(File f1, File f2) throws Exception {
-        List<Operation> rootOperations =  new AstComparator().compare(f1, f2).getRootOperations();
-        List<Operation> mutableList = new ArrayList<>(rootOperations);
-
-        class OperationSorter implements Comparator<Operation> {
-            /**
-             * Sorts the list of operation according to the sizes of nodes attached to each action
-             * in descending order.
-             *
-             * @param o1 First list item
-             * @param o2 Second list item
-             * @return [-1,0,1] result of comparison of sum of sizes of children list of src and
-             * dest node
-             */
-            @Override
-            public int compare(Operation o1, Operation o2) {
-                CtElement o1SrcChildren = o1.getSrcNode();
-                CtElement o2SrcChildren = o2.getSrcNode();
-                CtElement o1DestChildren = o1.getDstNode();
-                CtElement o2DestChildren = o2.getDstNode();
-                return Double.compare(
-                    this.nodeSize(o1SrcChildren) + this.nodeSize(o1DestChildren),
-                    this.nodeSize(o2SrcChildren) + this.nodeSize(o2DestChildren)
-                );
-            }
-
-            /**
-             * Calculates the number of direct children of the {@link CtElement} passed.
-             *
-             * @param ctElement Element whose number of children has to be calculated
-             * @return number of direct children
-             */
-            public int nodeSize(CtElement ctElement) {
-                return  ctElement != null ? ctElement.getDirectChildren().size() : 0;
-            }
-        }
-
-        Collections.sort(mutableList, new OperationSorter());
-        Collections.reverse(mutableList);
-
-        return mutableList;
+    public static List<Operation> getOperations(File leftFile, File rightFile) throws Exception {
+        return new AstComparator().compare(leftFile, rightFile).getRootOperations();
     }
 
     /**
-     * Patches `f1` using the edit script.
+     * Patches `leftFile` using the root operations.
      *
-     * @param f1 Previous version of the file which needs to be modified
-     * @param operations List of operations which will govern how `f1` will be patched
-     * @return Updated {@link CtElement} of `f1`
+     * @param leftFilePath Path of the previous version of the file which needs to be modified
+     * @param operations List of operations which will govern how `leftFile` will be patched
+     * @return Updated {@link CtModel} containing only `leftFile`
      * @throws Exception Exception raised via {@link AstComparator}
      */
-    public static CtElement patch(File f1, List<Operation> operations) throws Exception {
-        CtElement prevFileElement = new AstComparator().getCtType(f1);
+    public static CtModel patch(String leftFilePath, List<Operation> operations) throws Exception {
+        final Launcher launcher = new Launcher();
+        launcher.addInputResource(leftFilePath);
+        CtModel leftModel = launcher.buildModel();
         for (Operation operation : operations) {
-            if (operation.getAction() instanceof Update) {
-                CtElement updatedNodeSrc = operation.getSrcNode();
-                CtElement updatedNodeDest = operation.getDstNode();
-                Iterator it = prevFileElement.descendantIterator();
-                while (it.hasNext()) {
-                    CtElement element = (CtElement) it.next();
-                    if (updatedNodeSrc.equals(element)) {
-                        UpdatePatch up = new UpdatePatch(element, updatedNodeDest);
-                        up.process();
-                    }
-                }
-            }
-            else if (operation.getAction() instanceof Delete) {
+            if (operation.getAction() instanceof Delete) {
                 CtElement removedNode = operation.getSrcNode();
-                Iterator it = prevFileElement.descendantIterator();
-                while (it.hasNext()) {
-                    CtElement element = (CtElement) it.next();
-                    if (removedNode.equals(element)) {
-                        DeletePatch dp = new DeletePatch(element);
-                        dp.process();
-                    }
-                }
+                DeletePatch dp = new DeletePatch(leftModel, removedNode);
+                dp.process();
             }
         }
-        return prevFileElement;
+        return leftModel;
     }
 
     /**
@@ -116,11 +58,10 @@ public class App {
             System.out.println("Usage: DiffSpoon <file_1>  <file_2>");
             return;
         }
-        List<Operation> operations;
-        CtElement patchedCtElement;
         try {
-            operations = App.getOperations(new File(args[0]), new File(args[1]));
-            patchedCtElement = App.patch(new File(args[0]), operations);
+            List<Operation> operations = App.getOperations(new File(args[0]), new File(args[1]));
+            CtModel patchedCtModel = App.patch(args[0], operations);
+            CtElement patchedCtElement = patchedCtModel.getRootPackage().getDirectChildren().get(0);
             System.out.println(patchedCtElement.prettyprint());
         } catch (Exception e) {
             e.printStackTrace();

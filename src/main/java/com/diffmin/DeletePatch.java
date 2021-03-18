@@ -1,12 +1,15 @@
 package com.diffmin;
 
+import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtElement;
+import spoon.reflect.path.CtPath;
 
 /**
  * Applies delete patch to CtElements.
  */
 public class DeletePatch {
 
+    private CtModel modelToBePatched;
     private CtElement removedNode;
 
     /**
@@ -14,7 +17,8 @@ public class DeletePatch {
      *
      * @param removedNode Node which has to be deleted
      */
-    public DeletePatch(CtElement removedNode) {
+    public DeletePatch(CtModel modelToBePatched, CtElement removedNode) {
+        this.modelToBePatched = modelToBePatched;
         this.removedNode = removedNode;
     }
 
@@ -22,6 +26,9 @@ public class DeletePatch {
      * Removes `removedNode` from CtElement tree.
      */
     public void process() {
-        this.removedNode.delete();
+        CtPath removedNodePath = this.removedNode.getPath();
+        // get(0) is used under that assumption that only one element will be returned
+        // corresponding to a CtPath
+        removedNodePath.evaluateOn(this.modelToBePatched.getRootPackage()).get(0).delete();
     }
 }
