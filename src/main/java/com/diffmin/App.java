@@ -61,8 +61,14 @@ public class App {
         try {
             List<Operation> operations = App.getOperations(new File(args[0]), new File(args[1]));
             CtModel patchedCtModel = App.patch(args[0], operations);
-            CtElement patchedCtElement = patchedCtModel.getRootPackage().getDirectChildren().get(0);
-            System.out.println(patchedCtElement.prettyprint());
+            if (patchedCtModel.getRootPackage().isEmpty()) {
+                System.out.println(patchedCtModel.getRootPackage().prettyprint());
+            }
+            else {
+                CtElement patchedCtElement = patchedCtModel.getRootPackage()
+                    .getDirectChildren().get(0);
+                System.out.println(patchedCtElement.prettyprint());
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

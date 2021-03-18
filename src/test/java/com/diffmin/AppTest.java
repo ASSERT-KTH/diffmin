@@ -35,8 +35,13 @@ public class AppTest {
         CtElement expectedNewElement = new AstComparator().getCtType(f2);
         List<Operation> operations = App.getOperations(f1, f2);
         CtModel patchedCtModel = App.patch(filePathLeft, operations);
-        CtElement patchedCtElement = patchedCtModel.getRootPackage().getDirectChildren().get(0);
-        assert expectedNewElement.prettyprint().equals(patchedCtElement.prettyprint());
+        if (patchedCtModel.getRootPackage().isEmpty()) {
+            assert expectedNewElement == null;
+        }
+        else {
+            CtElement patchedCtElement = patchedCtModel.getRootPackage().getDirectChildren().get(0);
+            assert expectedNewElement.prettyprint().equals(patchedCtElement.prettyprint());
+        }
     }
 
     private static Arguments[] resourceProvider() {
@@ -51,6 +56,11 @@ public class AppTest {
                 "Should delete a specific literal",
                 "src/test/resources/delete/specific_literal/left.java",
                 "src/test/resources/delete/specific_literal/right.java"
+            ),
+            Arguments.of(
+                "Should delete an entire program",
+                "src/test/resources/delete/entire_file/left.java",
+                "src/test/resources/delete/entire_file/right.java"
             )
         };
     }
