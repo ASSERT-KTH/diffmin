@@ -33,8 +33,11 @@ public class AppTest {
         File f1 = new File(filePathLeft);
         File f2 = new File(filePathRight);
         CtElement expectedNewElement = new AstComparator().getCtType(f2);
-        List<Operation> operations = App.getOperations(f1, f2);
-        CtModel patchedCtModel = App.patch(filePathLeft, operations);
+        App app = new App(filePathLeft);
+        List<Operation> operations = app.getOperations(f1, f2);
+        app.generatePatch(operations);
+        app.applyPatch();
+        CtModel patchedCtModel = app.modelToBeModified;
         if (patchedCtModel.getRootPackage().isEmpty()) {
             assert expectedNewElement == null;
         }
