@@ -23,30 +23,30 @@ public class App {
     /**
      * Constructor of the kernel to generate and apply patch.
      *
-     * @param leftFilePath Path of the previous version of the file which needs to be modified
+     * @param prevFilePath Path of the previous version of the file which needs to be modified
      */
-    public App(String leftFilePath) {
+    public App(String prevFilePath) {
         final Launcher launcher = new Launcher();
-        launcher.addInputResource(leftFilePath);
+        launcher.addInputResource(prevFilePath);
         this.modelToBeModified = launcher.buildModel();
     }
 
     /**
      * Computes the list of operations which is used for patching `f2`.
      *
-     * @param leftFile Previous version of the file
-     * @param rightFile Modified version of the file
+     * @param prevFile Previous version of the file
+     * @param newFile Modified version of the file
      * @return List of operations in the edit script
      * @throws Exception Exception raised via {@link AstComparator}
      */
-    public List<Operation> getOperations(File leftFile, File rightFile) throws Exception {
-        return new AstComparator().compare(leftFile, rightFile).getRootOperations();
+    public List<Operation> getOperations(File prevFile, File newFile) throws Exception {
+        return new AstComparator().compare(prevFile, newFile).getRootOperations();
     }
 
     /**
      * Generate list of patches for each individual operation type - {@link OperationKind}.
      *
-     * @param operations List of operations which will govern how `leftFile` will be patched
+     * @param operations List of operations which will govern how `prevFile` will be patched
      */
     public void generatePatch(List<Operation> operations) {
 
@@ -66,9 +66,8 @@ public class App {
      * Apply all the patches generated.
      */
     public void applyPatch() {
-        for (int i = 0; i < this.deletePatches.size(); ++i) {
-            DeletePatch dp = new DeletePatch(this.deletePatches.get(i));
-            dp.process();
+        for (CtElement element : deletePatches) {
+            element.delete();
         }
     }
 

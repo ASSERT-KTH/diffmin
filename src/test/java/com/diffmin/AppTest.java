@@ -19,8 +19,8 @@ public class AppTest {
      * Tests for verifying if patch works correctly.
      *
      * @param testMessage  Test message to be displayed
-     * @param filePathLeft File path of previous version
-     * @param filePathRight File path of modified version
+     * @param prevFilePath File path of previous version
+     * @param nextFilePath File path of modified version
      * @throws Exception Exception raised via {@link AstComparator}, {@link App} and,
      * {@link AssertionError}
      */
@@ -28,12 +28,12 @@ public class AppTest {
     @ParameterizedTest(name = "{0}")
     @MethodSource("resourceProvider")
     public void shouldPatch(
-            String testMessage, String filePathLeft, String filePathRight
+            String testMessage, String prevFilePath, String nextFilePath
     ) throws Exception {
-        File f1 = new File(filePathLeft);
-        File f2 = new File(filePathRight);
+        File f1 = new File(prevFilePath);
+        File f2 = new File(nextFilePath);
         CtElement expectedNewElement = new AstComparator().getCtType(f2);
-        App app = new App(filePathLeft);
+        App app = new App(prevFilePath);
         List<Operation> operations = app.getOperations(f1, f2);
         app.generatePatch(operations);
         app.applyPatch();
