@@ -1,5 +1,8 @@
 package com.diffmin;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 import gumtree.spoon.AstComparator;
 import gumtree.spoon.diff.operations.Operation;
 import java.io.File;
@@ -39,11 +42,15 @@ public class AppTest {
         app.applyPatch();
         CtModel patchedCtModel = app.modelToBeModified;
         if (patchedCtModel.getRootPackage().isEmpty()) {
-            assert expectedNewElement == null;
+            assertNull(expectedNewElement, "Patched prev file is not empty");
         }
         else {
             CtElement patchedCtElement = patchedCtModel.getRootPackage().getDirectChildren().get(0);
-            assert expectedNewElement.prettyprint().equals(patchedCtElement.prettyprint());
+            assertEquals(
+                    expectedNewElement.prettyprint(),
+                    patchedCtElement.prettyprint(),
+                    "Prev file was not patched correctly"
+            );
         }
     }
 
