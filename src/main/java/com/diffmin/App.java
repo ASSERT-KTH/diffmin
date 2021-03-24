@@ -10,7 +10,6 @@ import java.util.List;
 import spoon.Launcher;
 import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtElement;
-import spoon.reflect.path.CtPath;
 
 /**
  * Entry point of the project. Computes the edit script and uses it to patch the.
@@ -44,6 +43,16 @@ public class App {
     }
 
     /**
+     * Return the node in the prev file model for further modification.
+     *
+     * @param element node which has to be located in prev file model
+     * @return located node in the prev file model
+     */
+    private List<CtElement> getElementToBeModified(CtElement element) {
+        return element.getPath().evaluateOn(this.modelToBeModified.getRootPackage());
+    }
+
+    /**
      * Generate list of patches for each individual operation type - {@link OperationKind}.
      *
      * @param operations List of operations which will govern how `prevFile` will be patched
@@ -53,10 +62,7 @@ public class App {
         for (Operation operation : operations) {
             if (operation.getAction() instanceof Delete) {
                 CtElement removedNode = operation.getSrcNode();
-                CtPath removedNodePath = removedNode.getPath();
-                List<CtElement> elementsToBeDeleted = removedNodePath.evaluateOn(
-                        this.modelToBeModified.getRootPackage()
-                );
+                List<CtElement> elementsToBeDeleted = this.getElementToBeModified(removedNode);
                 this.deletePatches.addAll(elementsToBeDeleted);
             }
         }
