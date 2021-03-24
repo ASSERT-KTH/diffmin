@@ -1,6 +1,7 @@
 package com.diffmin;
 
 import com.github.gumtreediff.actions.model.Delete;
+import com.github.gumtreediff.actions.model.Update;
 import gumtree.spoon.AstComparator;
 import gumtree.spoon.diff.operations.Operation;
 import gumtree.spoon.diff.operations.OperationKind;
@@ -8,6 +9,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import spoon.Launcher;
+import spoon.javadoc.internal.Pair;
 import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtElement;
 
@@ -17,6 +19,7 @@ import spoon.reflect.declaration.CtElement;
 public class App {
 
     private List<CtElement> deletePatches = new ArrayList<>();
+    private List<Pair<CtElement, CtElement>> updatePatches = new ArrayList<>();
     public CtModel modelToBeModified;
 
     /**
@@ -65,6 +68,14 @@ public class App {
                 List<CtElement> elementsToBeDeleted = this.getElementToBeModified(removedNode);
                 this.deletePatches.addAll(elementsToBeDeleted);
             }
+            else if (operation.getAction() instanceof Update) {
+                CtElement srcNode = operation.getSrcNode();
+                CtElement dstNode = operation.getDstNode();
+                List<CtElement> elementsToBeUpdated = this.getElementToBeModified(srcNode);
+                for (int i = 0; i < elementsToBeUpdated.size(); ++i) {
+                    updatePatches.add(new Pair(elementsToBeUpdated.get(0), dstNode));
+                }
+            }
         }
     }
 
@@ -74,6 +85,11 @@ public class App {
     public void applyPatch() {
         for (CtElement element : deletePatches) {
             element.delete();
+        }
+        for (Pair<CtElement, CtElement> update : updatePatches) {
+            CtElement prevNode = update.a;
+            CtElement newNode = update.b;
+            prevNode.replace(newNode);
         }
     }
 
