@@ -7,11 +7,13 @@ import gumtree.spoon.diff.operations.Operation;
 import gumtree.spoon.diff.operations.OperationKind;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import spoon.Launcher;
 import spoon.javadoc.internal.Pair;
 import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtElement;
+import spoon.reflect.declaration.CtType;
 
 /**
  * Entry point of the project. Computes the edit script and uses it to patch the.
@@ -56,6 +58,22 @@ public class App {
     }
 
     /**
+     * Pretty prints the model.
+     *
+     * @param model model to be pretty printed
+     * @return patched program
+     */
+    public String displayModifiedModel(CtModel model) {
+        String output = "";
+        Iterator modelIterator = model.getAllTypes().iterator();
+        while (modelIterator.hasNext()) {
+            CtType element = (CtType) modelIterator.next();
+            output += element.prettyprint();
+        }
+        return output;
+    }
+
+    /**
      * Generate list of patches for each individual operation type - {@link OperationKind}.
      *
      * @param operations List of operations which will govern how `prevFile` will be patched
@@ -73,7 +91,7 @@ public class App {
                 CtElement dstNode = operation.getDstNode();
                 List<CtElement> elementsToBeUpdated = this.getElementToBeModified(srcNode);
                 for (int i = 0; i < elementsToBeUpdated.size(); ++i) {
-                    updatePatches.add(new Pair(elementsToBeUpdated.get(0), dstNode));
+                    updatePatches.add(new Pair(elementsToBeUpdated.get(i), dstNode));
                 }
             }
         }
@@ -109,15 +127,7 @@ public class App {
             app.generatePatch(operations);
             app.applyPatch();
             CtModel patchedCtModel = app.modelToBeModified;
-            if (patchedCtModel.getRootPackage().isEmpty()) {
-                System.out.println(patchedCtModel.getRootPackage().prettyprint());
-            }
-            else {
-                // get(0) will return the first element inside the package which is usually a Class
-                CtElement patchedCtElement = patchedCtModel.getRootPackage()
-                    .getDirectChildren().get(0);
-                System.out.println(patchedCtElement.prettyprint());
-            }
+            System.out.println(app.displayModifiedModel(patchedCtModel));
         } catch (Exception e) {
             e.printStackTrace();
         }
