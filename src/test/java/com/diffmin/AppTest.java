@@ -45,10 +45,10 @@ public class AppTest {
             assertNull(expectedNewElement, "Patched prev file is not empty");
         }
         else {
-            CtElement patchedCtElement = patchedCtModel.getRootPackage().getDirectChildren().get(0);
+            String patchedProgram = app.displayModifiedModel(patchedCtModel);
             assertEquals(
                     expectedNewElement.prettyprint(),
-                    patchedCtElement.prettyprint(),
+                    patchedProgram,
                     "Prev file was not patched correctly"
             );
         }
@@ -71,6 +71,27 @@ public class AppTest {
                 "Should delete an entire program",
                 "src/test/resources/delete/entire_file/left.java",
                 "src/test/resources/delete/entire_file/right.java"
+            ),
+            // Pure update patches
+            Arguments.of(
+                "Should update invocation",
+                "src/test/resources/update/invocation/prev.java",
+                "src/test/resources/update/invocation/new.java"
+            ),
+            Arguments.of(
+                "Should update literal",
+                "src/test/resources/update/literal/prev.java",
+                "src/test/resources/update/literal/new.java"
+            ),
+            Arguments.of(
+                "Should update literal and invocation",
+                "src/test/resources/update/literal/prev.java",
+                "src/test/resources/update/literal/new.java"
+            ),
+            Arguments.of(
+                "Should update type reference",
+                "src/test/resources/update/typeref/prev.java",
+                "src/test/resources/update/typeref/new.java"
             )
         };
     }
