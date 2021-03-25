@@ -90,8 +90,8 @@ public class App {
                 CtElement srcNode = operation.getSrcNode();
                 CtElement dstNode = operation.getDstNode();
                 List<CtElement> elementsToBeUpdated = this.getElementToBeModified(srcNode);
-                for (int i = 0; i < elementsToBeUpdated.size(); ++i) {
-                    updatePatches.add(new Pair(elementsToBeUpdated.get(i), dstNode));
+                for (CtElement ctElement : elementsToBeUpdated) {
+                    updatePatches.add(new Pair<>(ctElement, dstNode));
                 }
             }
         }
