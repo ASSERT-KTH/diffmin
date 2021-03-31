@@ -114,6 +114,11 @@ public class AppTest {
                 "Should preserve formatting and update local variable",
                 "src/test/resources/update/formatting_change/prev.java",
                 "src/test/resources/update/formatting_change/new.java"
+            ),
+            Arguments.of(
+                "Should apply multiple update patches",
+                "src/test/resources/update/multiple_updates/prev.java",
+                "src/test/resources/update/multiple_updates/new.java"
             )
         };
     }
