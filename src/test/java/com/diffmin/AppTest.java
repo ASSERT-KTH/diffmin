@@ -45,6 +45,7 @@ public class AppTest {
         CtModel patchedCtModel = app.modelToBeModified;
 
         final Launcher launcher = new Launcher();
+        launcher.getEnvironment().setCommentEnabled(false);
         launcher.addInputResource(nextFilePath);
         CtModel expectedModel = launcher.buildModel();
         Optional<CtType<?>> firstType = expectedModel.getAllTypes().stream().findFirst();
@@ -108,6 +109,11 @@ public class AppTest {
                 "Should update type reference",
                 "src/test/resources/update/typeref/prev.java",
                 "src/test/resources/update/typeref/new.java"
+            ),
+            Arguments.of(
+                "Should preserve formatting and update local variable",
+                "src/test/resources/update/formatting_change/prev.java",
+                "src/test/resources/update/formatting_change/new.java"
             )
         };
     }
