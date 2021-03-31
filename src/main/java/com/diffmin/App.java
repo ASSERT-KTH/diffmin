@@ -7,11 +7,11 @@ import gumtree.spoon.diff.operations.Operation;
 import gumtree.spoon.diff.operations.OperationKind;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import spoon.Launcher;
 import spoon.javadoc.internal.Pair;
 import spoon.reflect.CtModel;
+import spoon.reflect.declaration.CtCompilationUnit;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtType;
 
@@ -64,13 +64,9 @@ public class App {
      * @return patched program
      */
     public String displayModifiedModel(CtModel model) {
-        String output = "";
-        Iterator modelIterator = model.getAllTypes().iterator();
-        while (modelIterator.hasNext()) {
-            CtType element = (CtType) modelIterator.next();
-            output += element.prettyprint();
-        }
-        return output;
+        CtType<?> firstType = model.getAllTypes().stream().findFirst().get();
+        CtCompilationUnit cu = firstType.getFactory().CompilationUnit().getOrCreate(firstType);
+        return cu.prettyprint();
     }
 
     /**

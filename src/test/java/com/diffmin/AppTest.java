@@ -1,18 +1,20 @@
 package com.diffmin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 import gumtree.spoon.AstComparator;
 import gumtree.spoon.diff.operations.Operation;
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import spoon.Launcher;
 import spoon.reflect.CtModel;
-import spoon.reflect.declaration.CtElement;
+import spoon.reflect.declaration.CtCompilationUnit;
+import spoon.reflect.declaration.CtType;
 
 /**
  * Unit test for simple App.
@@ -35,21 +37,35 @@ public class AppTest {
     ) throws Exception {
         File f1 = new File(prevFilePath);
         File f2 = new File(nextFilePath);
-        CtElement expectedNewElement = new AstComparator().getCtType(f2);
+
         App app = new App(prevFilePath);
         List<Operation> operations = app.getOperations(f1, f2);
         app.generatePatch(operations);
         app.applyPatch();
         CtModel patchedCtModel = app.modelToBeModified;
-        if (patchedCtModel.getRootPackage().isEmpty()) {
-            assertNull(expectedNewElement, "Patched prev file is not empty");
+
+        final Launcher launcher = new Launcher();
+        launcher.addInputResource(nextFilePath);
+        CtModel expectedModel = launcher.buildModel();
+        Optional<CtType<?>> firstType = expectedModel.getAllTypes().stream().findFirst();
+
+        if (firstType.equals(Optional.empty())) {
+            assertEquals(
+                patchedCtModel.getAllTypes().stream().findFirst(),
+                Optional.empty(),
+                "Patched prev file is not empty"
+
+            );
         }
         else {
+            CtType<?> retrievedFirstType = firstType.get();
+            CtCompilationUnit cu = retrievedFirstType
+                .getFactory().CompilationUnit().getOrCreate(retrievedFirstType);
             String patchedProgram = app.displayModifiedModel(patchedCtModel);
             assertEquals(
-                    expectedNewElement.prettyprint(),
-                    patchedProgram,
-                    "Prev file was not patched correctly"
+                cu.prettyprint(),
+                patchedProgram,
+                "Prev file was not patched correctly"
             );
         }
     }
