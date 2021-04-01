@@ -1,6 +1,7 @@
 package com.diffmin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import gumtree.spoon.diff.operations.Operation;
 import java.io.File;
@@ -150,12 +151,10 @@ public class AppTest {
         CtModel expectedModel = launcher.buildModel();
         Optional<CtType<?>> firstType = expectedModel.getAllTypes().stream().findFirst();
 
-        if (firstType.equals(Optional.empty())) {
-            assertEquals(
-                    patchedCtModel.getAllTypes().stream().findFirst(),
-                    Optional.empty(),
+        if (firstType.isEmpty()) {
+            assertTrue(
+                    patchedCtModel.getAllTypes().stream().findFirst().isEmpty(),
                     "Patched prev file is not empty"
-
             );
         }
         else {
