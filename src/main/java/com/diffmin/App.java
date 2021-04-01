@@ -1,5 +1,6 @@
 package com.diffmin;
 
+import com.diffmin.util.Pair;
 import com.github.gumtreediff.actions.model.Delete;
 import com.github.gumtreediff.actions.model.Update;
 import gumtree.spoon.AstComparator;
@@ -9,7 +10,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import spoon.Launcher;
-import spoon.javadoc.internal.Pair;
 import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtCompilationUnit;
 import spoon.reflect.declaration.CtElement;
