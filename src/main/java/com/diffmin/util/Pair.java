@@ -7,8 +7,8 @@ package com.diffmin.util;
  * @param <P> Generic type for second element inside Pair
  */
 public class Pair<T, P> {
-    public T a;
-    public P b;
+    public final T a;
+    public final P b;
 
     /**
      * Constructs a Pair instance.
