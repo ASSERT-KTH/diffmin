@@ -4,7 +4,7 @@ class MultipleUpdates {
         System.out.println("New");
     }
 
-    public subtract(int a, int b) {
+    public void subtract(int a, int b) {
         System.out.println(a-b);
     }
 }

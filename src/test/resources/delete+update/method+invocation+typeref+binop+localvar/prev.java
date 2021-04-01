@@ -4,7 +4,7 @@ class MethodInvocation {
         System.out.println(x);
     }
 
-    private add(float a, float b) {
+    private float add(float a, float b) {
         System.out.println(a+b);
         return a + b;
     }

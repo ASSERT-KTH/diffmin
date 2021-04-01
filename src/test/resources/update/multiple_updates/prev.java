@@ -4,7 +4,7 @@ class MultipleUpdates {
         System.out.println("Old");
     }
 
-    public add(int a, int b) {
+    public void add(int a, int b) {
         System.out.println(a+b);
     }
 }
