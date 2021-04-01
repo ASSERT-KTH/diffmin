@@ -30,6 +30,7 @@ public class AppTest {
     public static final Path RESOURCES_BASE_DIR = Paths.get("src/test/resources");
     public static final Path PURE_DELETE_PATCHES = RESOURCES_BASE_DIR.resolve("delete");
     public static final Path PURE_UPDATE_PATCHES = RESOURCES_BASE_DIR.resolve("update");
+    public static final Path PURE_INSERT_PATCHES = RESOURCES_BASE_DIR.resolve("insert");
     public static final Path DELETE_UPDATE_PATCHES = RESOURCES_BASE_DIR.resolve("delete+update");
 
     private static Stream<? extends Arguments> getArgumentSourceStream(
@@ -116,6 +117,17 @@ public class AppTest {
         }
     }
 
+    /** Provides test sources for scenarios where only insert patches are applied. */
+    public static class PureInsertPatches implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+            return getArgumentSourceStream(
+                    PURE_INSERT_PATCHES.toFile(),
+                    TestResources::fromTestDirectory
+            );
+        }
+    }
+
     @ParameterizedTest
     @ArgumentsSource(PureUpdatePatches.class)
     void should_apply_pure_update_patches(TestResources sources) throws Exception {
@@ -131,6 +143,12 @@ public class AppTest {
     @ParameterizedTest
     @ArgumentsSource(DeleteUpdatePatches.class)
     void should_apply_delete_update_patches(TestResources sources) throws Exception {
+        runTests(sources);
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(PureInsertPatches.class)
+    void should_apply_pure_insert_patches(TestResources sources) throws Exception {
         runTests(sources);
     }
 
