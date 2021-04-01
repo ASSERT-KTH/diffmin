@@ -1,6 +1,8 @@
 package com.diffmin;
 
+import com.diffmin.util.Pair;
 import com.github.gumtreediff.actions.model.Delete;
+import com.github.gumtreediff.actions.model.Update;
 import gumtree.spoon.AstComparator;
 import gumtree.spoon.diff.operations.Operation;
 import gumtree.spoon.diff.operations.OperationKind;
@@ -9,7 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import spoon.Launcher;
 import spoon.reflect.CtModel;
+import spoon.reflect.declaration.CtCompilationUnit;
 import spoon.reflect.declaration.CtElement;
+import spoon.reflect.declaration.CtType;
 
 /**
  * Entry point of the project. Computes the edit script and uses it to patch the.
@@ -17,6 +21,7 @@ import spoon.reflect.declaration.CtElement;
 public class App {
 
     private List<CtElement> deletePatches = new ArrayList<>();
+    private List<Pair<CtElement, CtElement>> updatePatches = new ArrayList<>();
     public CtModel modelToBeModified;
 
     /**
@@ -53,6 +58,18 @@ public class App {
     }
 
     /**
+     * Pretty prints the model.
+     *
+     * @param model model to be pretty printed
+     * @return patched program
+     */
+    public String displayModifiedModel(CtModel model) {
+        CtType<?> firstType = model.getAllTypes().stream().findFirst().get();
+        CtCompilationUnit cu = firstType.getFactory().CompilationUnit().getOrCreate(firstType);
+        return cu.prettyprint();
+    }
+
+    /**
      * Generate list of patches for each individual operation type - {@link OperationKind}.
      *
      * @param operations List of operations which will govern how `prevFile` will be patched
@@ -65,6 +82,14 @@ public class App {
                 List<CtElement> elementsToBeDeleted = this.getElementToBeModified(removedNode);
                 this.deletePatches.addAll(elementsToBeDeleted);
             }
+            else if (operation.getAction() instanceof Update) {
+                CtElement srcNode = operation.getSrcNode();
+                CtElement dstNode = operation.getDstNode();
+                List<CtElement> elementsToBeUpdated = this.getElementToBeModified(srcNode);
+                for (CtElement ctElement : elementsToBeUpdated) {
+                    updatePatches.add(new Pair<>(ctElement, dstNode));
+                }
+            }
         }
     }
 
@@ -74,6 +99,11 @@ public class App {
     public void applyPatch() {
         for (CtElement element : deletePatches) {
             element.delete();
+        }
+        for (Pair<CtElement, CtElement> update : updatePatches) {
+            CtElement prevNode = update.a;
+            CtElement newNode = update.b;
+            prevNode.replace(newNode);
         }
     }
 
@@ -93,15 +123,7 @@ public class App {
             app.generatePatch(operations);
             app.applyPatch();
             CtModel patchedCtModel = app.modelToBeModified;
-            if (patchedCtModel.getRootPackage().isEmpty()) {
-                System.out.println(patchedCtModel.getRootPackage().prettyprint());
-            }
-            else {
-                // get(0) will return the first element inside the package which is usually a Class
-                CtElement patchedCtElement = patchedCtModel.getRootPackage()
-                    .getDirectChildren().get(0);
-                System.out.println(patchedCtElement.prettyprint());
-            }
+            System.out.println(app.displayModifiedModel(patchedCtModel));
         } catch (Exception e) {
             e.printStackTrace();
         }
