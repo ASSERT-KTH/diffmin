@@ -32,7 +32,7 @@ public class App {
     public App(String prevFilePath) {
         final Launcher launcher = new Launcher();
         launcher.addInputResource(prevFilePath);
-        this.modelToBeModified = launcher.buildModel();
+        modelToBeModified = launcher.buildModel();
     }
 
     /**
@@ -54,7 +54,7 @@ public class App {
      * @return located node in the prev file model
      */
     private List<CtElement> getElementToBeModified(CtElement element) {
-        return element.getPath().evaluateOn(this.modelToBeModified.getRootPackage());
+        return element.getPath().evaluateOn(modelToBeModified.getRootPackage());
     }
 
     /**
@@ -79,13 +79,13 @@ public class App {
         for (Operation operation : operations) {
             if (operation.getAction() instanceof Delete) {
                 CtElement removedNode = operation.getSrcNode();
-                List<CtElement> elementsToBeDeleted = this.getElementToBeModified(removedNode);
-                this.deletePatches.addAll(elementsToBeDeleted);
+                List<CtElement> elementsToBeDeleted = getElementToBeModified(removedNode);
+                deletePatches.addAll(elementsToBeDeleted);
             }
             else if (operation.getAction() instanceof Update) {
                 CtElement srcNode = operation.getSrcNode();
                 CtElement dstNode = operation.getDstNode();
-                List<CtElement> elementsToBeUpdated = this.getElementToBeModified(srcNode);
+                List<CtElement> elementsToBeUpdated = getElementToBeModified(srcNode);
                 for (CtElement ctElement : elementsToBeUpdated) {
                     updatePatches.add(new Pair<>(ctElement, dstNode));
                 }
