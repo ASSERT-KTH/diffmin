@@ -101,8 +101,8 @@ public class App {
             element.delete();
         }
         for (Pair<CtElement, CtElement> update : updatePatches) {
-            CtElement prevNode = update.a;
-            CtElement newNode = update.b;
+            CtElement prevNode = update.getFirst();
+            CtElement newNode = update.getSecond();
             prevNode.replace(newNode);
         }
     }
