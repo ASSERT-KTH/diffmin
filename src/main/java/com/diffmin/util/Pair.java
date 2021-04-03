@@ -21,20 +21,12 @@ public class Pair<T, P> {
         this.second = second;
     }
 
-    /**
-     * Returns the first element.
-     *
-     * @return the first element
-     */
+    /** Returns the first element. */
     public T getFirst() {
         return this.first;
     }
 
-    /**
-     * Returns the second element.
-     *
-     * @return the second element
-     */
+    /** Returns the second element. */
     public P getSecond() {
         return this.second;
     }
