@@ -116,8 +116,8 @@ public class App {
             prevNode.replace(newNode);
         }
         for (Pair<CtElement, CtElement> patch : insertPatches) {
-            CtElement prevNode = patch.a;
-            CtElement newNode = patch.b;
+            CtElement prevNode = patch.getFirst();
+            CtElement newNode = patch.getSecond();
             prevNode.replace(newNode);
         }
     }
