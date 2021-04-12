@@ -7,12 +7,16 @@ import gumtree.spoon.AstComparator;
 import gumtree.spoon.diff.operations.Operation;
 import gumtree.spoon.diff.operations.OperationKind;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import spoon.Launcher;
+import spoon.compiler.SpoonResource;
+import spoon.compiler.SpoonResourceHelper;
 import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtCompilationUnit;
 import spoon.reflect.declaration.CtElement;
+import spoon.reflect.declaration.CtPackage;
 import spoon.reflect.declaration.CtType;
 
 /**
@@ -36,6 +40,21 @@ public class App {
     }
 
     /**
+     * Returns the root package of the file.
+     *
+     * @param file File whose all {@link CtPackage} needs to returned
+     * @return Root package of the file
+     * @throws FileNotFoundException Exception raise via {@link SpoonResourceHelper}
+     */
+    public CtPackage getPackage(File file) throws FileNotFoundException {
+        final SpoonResource resource = SpoonResourceHelper.createResource(file);
+        final Launcher launcher = new Launcher();
+        launcher.addInputResource(resource);
+        CtModel model = launcher.buildModel();
+        return model.getRootPackage();
+    }
+
+    /**
      * Computes the list of operations which is used for patching `f2`.
      *
      * @param prevFile Previous version of the file
@@ -44,7 +63,9 @@ public class App {
      * @throws Exception Exception raised via {@link AstComparator}
      */
     public List<Operation> getOperations(File prevFile, File newFile) throws Exception {
-        return new AstComparator().compare(prevFile, newFile).getRootOperations();
+        CtElement prevPackage = getPackage(prevFile);
+        CtElement newPackage = getPackage(newFile);
+        return new AstComparator().compare(prevPackage, newPackage).getRootOperations();
     }
 
     /**
