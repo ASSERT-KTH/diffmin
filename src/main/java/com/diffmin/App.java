@@ -2,6 +2,7 @@ package com.diffmin;
 
 import com.diffmin.util.Pair;
 import com.github.gumtreediff.actions.model.Delete;
+import com.github.gumtreediff.actions.model.Insert;
 import com.github.gumtreediff.actions.model.Update;
 import gumtree.spoon.AstComparator;
 import gumtree.spoon.diff.operations.Operation;
@@ -26,6 +27,7 @@ public class App {
 
     private List<CtElement> deletePatches = new ArrayList<>();
     private List<Pair<CtElement, CtElement>> updatePatches = new ArrayList<>();
+    private List<Pair<CtElement, CtElement>> insertPatches = new ArrayList<>();
     public CtModel modelToBeModified;
 
     /**
@@ -111,6 +113,14 @@ public class App {
                     updatePatches.add(new Pair<>(ctElement, dstNode));
                 }
             }
+            else if (operation.getAction() instanceof Insert) {
+                CtElement srcNode = operation.getSrcNode();
+                CtElement srcNodeParent = srcNode.getParent();
+                List<CtElement> elementsToBeInserted = getElementToBeModified(srcNodeParent);
+                for (CtElement ctElement : elementsToBeInserted) {
+                    insertPatches.add(new Pair<>(ctElement, srcNodeParent));
+                }
+            }
         }
     }
 
@@ -124,6 +134,11 @@ public class App {
         for (Pair<CtElement, CtElement> update : updatePatches) {
             CtElement prevNode = update.getFirst();
             CtElement newNode = update.getSecond();
+            prevNode.replace(newNode);
+        }
+        for (Pair<CtElement, CtElement> patch : insertPatches) {
+            CtElement prevNode = patch.getFirst();
+            CtElement newNode = patch.getSecond();
             prevNode.replace(newNode);
         }
     }
