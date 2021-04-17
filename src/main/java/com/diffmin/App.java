@@ -1,5 +1,7 @@
 package com.diffmin;
 
+import static java.lang.Math.min;
+
 import com.diffmin.util.Pair;
 import com.github.gumtreediff.actions.model.Delete;
 import com.github.gumtreediff.actions.model.Insert;
@@ -15,10 +17,13 @@ import spoon.Launcher;
 import spoon.compiler.SpoonResource;
 import spoon.compiler.SpoonResourceHelper;
 import spoon.reflect.CtModel;
+import spoon.reflect.code.CtBlock;
+import spoon.reflect.code.CtStatement;
 import spoon.reflect.declaration.CtCompilationUnit;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtPackage;
 import spoon.reflect.declaration.CtType;
+
 
 /**
  * Entry point of the project. Computes the edit script and uses it to patch the.
@@ -27,7 +32,8 @@ public class App {
 
     private List<CtElement> deletePatches = new ArrayList<>();
     private List<Pair<CtElement, CtElement>> updatePatches = new ArrayList<>();
-    private List<Pair<CtElement, CtElement>> insertPatches = new ArrayList<>();
+    private List<Pair<List<? extends CtElement>, List<? extends CtElement>>> insertPatches
+            = new ArrayList<>();
     public CtModel modelToBeModified;
 
     /**
@@ -81,6 +87,37 @@ public class App {
     }
 
     /**
+     * Returns the corresponding list of elements in parent according to
+     * {@link spoon.reflect.path.CtRole}.
+     *
+     * @param element element whose siblings (with the same role) need to be determined
+     * @return list of siblings with the same role
+     */
+    private List<? extends CtElement> getParentCollectionElementList(CtElement element) {
+        switch (element.getRoleInParent()) {
+            case STATEMENT:
+                return ((CtBlock<?>) element.getParent()).getStatements();
+            default:
+                throw new UnsupportedOperationException(
+                        "Unhandled role: " + element.getRoleInParent()
+                );
+        }
+    }
+
+    /**
+     * Returns the corresponding list of elements in collection elements like {@link CtBlock}.
+     *
+     * @param element the collection element
+     * @return the list of entities the `element` contains
+     */
+    private List<? extends CtElement> getCollectionElementList(CtElement element) {
+        if (element instanceof CtBlock) {
+            return ((CtBlock<?>) element).getStatements();
+        }
+        throw new UnsupportedOperationException("Cannot get entities inside" + element.getClass());
+    }
+
+    /**
      * Pretty prints the model.
      *
      * @param model model to be pretty printed
@@ -116,10 +153,12 @@ public class App {
             else if (operation.getAction() instanceof Insert) {
                 CtElement srcNode = operation.getSrcNode();
                 CtElement srcNodeParent = srcNode.getParent();
-                List<CtElement> elementsToBeInserted = getElementToBeModified(srcNodeParent);
-                for (CtElement ctElement : elementsToBeInserted) {
-                    insertPatches.add(new Pair<>(ctElement, srcNodeParent));
-                }
+                List<? extends CtElement> newStatementList
+                        = getParentCollectionElementList(srcNode);
+                List<? extends CtElement> prevStatementList = getCollectionElementList(
+                        getElementToBeModified(srcNodeParent).get(0)
+                );
+                insertPatches.add(new Pair<>(prevStatementList, newStatementList));
             }
         }
     }
@@ -136,10 +175,24 @@ public class App {
             CtElement newNode = update.getSecond();
             prevNode.replace(newNode);
         }
-        for (Pair<CtElement, CtElement> patch : insertPatches) {
-            CtElement prevNode = patch.getFirst();
-            CtElement newNode = patch.getSecond();
-            prevNode.replace(newNode);
+        for (Pair<List<? extends CtElement>, List<? extends CtElement>> patch : insertPatches) {
+            List<? extends CtElement> prevList = patch.getFirst();
+            List<? extends CtElement> newList = patch.getSecond();
+
+            int i;
+            for (i = 0; i < min(prevList.size(), newList.size()); ++i) {
+                CtStatement stmtInPrevList = (CtStatement) prevList.get(i);
+                CtStatement stmtInNewList = (CtStatement) newList.get(i);
+                if (!stmtInNewList.equals(stmtInPrevList)) {
+                    stmtInPrevList.insertBefore(stmtInNewList);
+                }
+            }
+            while (i < newList.size()) {
+                CtStatement stmtInPrevList = (CtStatement) prevList.get(prevList.size() - 1);
+                CtStatement stmtInNewList = (CtStatement) newList.get(i);
+                stmtInPrevList.insertAfter(stmtInNewList);
+                ++i;
+            }
         }
     }
 
