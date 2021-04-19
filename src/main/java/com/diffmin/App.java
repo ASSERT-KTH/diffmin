@@ -17,12 +17,8 @@ import spoon.Launcher;
 import spoon.compiler.SpoonResource;
 import spoon.compiler.SpoonResourceHelper;
 import spoon.reflect.CtModel;
-import spoon.reflect.code.CtBlock;
-import spoon.reflect.code.CtStatement;
-import spoon.reflect.declaration.CtCompilationUnit;
-import spoon.reflect.declaration.CtElement;
-import spoon.reflect.declaration.CtPackage;
-import spoon.reflect.declaration.CtType;
+import spoon.reflect.code.*;
+import spoon.reflect.declaration.*;
 
 
 /**
@@ -32,8 +28,8 @@ public class App {
 
     private List<CtElement> deletePatches = new ArrayList<>();
     private List<Pair<CtElement, CtElement>> updatePatches = new ArrayList<>();
-    private List<Pair<List<? extends CtElement>, List<? extends CtElement>>> insertPatches
-            = new ArrayList<>();
+    private List<Pair<Pair<CtElement, List<? extends CtElement>>,List<? extends CtElement>>>
+            insertPatches = new ArrayList<>();
     public CtModel modelToBeModified;
 
     /**
@@ -97,6 +93,8 @@ public class App {
         switch (element.getRoleInParent()) {
             case STATEMENT:
                 return ((CtBlock<?>) element.getParent()).getStatements();
+            case ARGUMENT:
+                return ((CtInvocation<?>) element.getParent()).getArguments();
             default:
                 throw new UnsupportedOperationException(
                         "Unhandled role: " + element.getRoleInParent()
@@ -113,6 +111,9 @@ public class App {
     private List<? extends CtElement> getCollectionElementList(CtElement element) {
         if (element instanceof CtBlock) {
             return ((CtBlock<?>) element).getStatements();
+        }
+        if (element instanceof CtInvocation) {
+            return ((CtInvocation<?>) element).getArguments();
         }
         throw new UnsupportedOperationException("Cannot get entities inside" + element.getClass());
     }
@@ -155,10 +156,19 @@ public class App {
                 CtElement srcNodeParent = srcNode.getParent();
                 List<? extends CtElement> newStatementList
                         = getParentCollectionElementList(srcNode);
+                CtElement srcNodeParentInPrev = getElementToBeModified(srcNodeParent).get(0);
                 List<? extends CtElement> prevStatementList = getCollectionElementList(
-                        getElementToBeModified(srcNodeParent).get(0)
+                        srcNodeParentInPrev
                 );
-                insertPatches.add(new Pair<>(prevStatementList, newStatementList));
+                insertPatches.add(
+                        new Pair<>(
+                                new Pair<>(
+                                        srcNodeParentInPrev,
+                                        prevStatementList
+                                ),
+                                newStatementList
+                        )
+                );
             }
         }
     }
@@ -175,23 +185,41 @@ public class App {
             CtElement newNode = update.getSecond();
             prevNode.replace(newNode);
         }
-        for (Pair<List<? extends CtElement>, List<? extends CtElement>> patch : insertPatches) {
-            List<? extends CtElement> prevList = patch.getFirst();
+        for (
+                Pair<Pair<CtElement, List<? extends CtElement>>, List<? extends CtElement>> patch
+                : insertPatches
+        ) {
+            CtElement srcNodeParentInPrev = patch.getFirst().getFirst();
+            List<? extends CtElement> prevList = patch.getFirst().getSecond();
             List<? extends CtElement> newList = patch.getSecond();
 
-            int i;
-            for (i = 0; i < min(prevList.size(), newList.size()); ++i) {
-                CtStatement stmtInPrevList = (CtStatement) prevList.get(i);
-                CtStatement stmtInNewList = (CtStatement) newList.get(i);
-                if (!stmtInNewList.equals(stmtInPrevList)) {
-                    stmtInPrevList.insertBefore(stmtInNewList);
-                }
+            if (srcNodeParentInPrev instanceof CtInvocation) {
+                List<CtExpression<?>> newListOfExpressions = (List<CtExpression<?>>) newList;
+                ((CtAbstractInvocation<?>) srcNodeParentInPrev).setArguments(newListOfExpressions);
             }
-            while (i < newList.size()) {
-                CtStatement stmtInPrevList = (CtStatement) prevList.get(prevList.size() - 1);
-                CtStatement stmtInNewList = (CtStatement) newList.get(i);
-                stmtInPrevList.insertAfter(stmtInNewList);
-                ++i;
+            else if (srcNodeParentInPrev instanceof CtBlock) {
+                int i = 0;
+                // this check is added so that prevList becomes non-empty and further statements
+                // can be added by referring to the first CtStatement appended.
+                if (prevList.isEmpty()) {
+                    ((CtBlock<?>) srcNodeParentInPrev).insertBegin(
+                            (CtStatement) newList.get(i).clone()
+                    );
+                    ++i;
+                }
+                for (; i < min(prevList.size(), newList.size()); ++i) {
+                    CtStatement stmtInPrevList = (CtStatement) prevList.get(i);
+                    CtStatement stmtInNewList = (CtStatement) newList.get(i);
+                    if (!stmtInNewList.equals(stmtInPrevList)) {
+                        stmtInPrevList.insertBefore(stmtInNewList);
+                    }
+                }
+                while (i < newList.size()) {
+                    CtStatement stmtInPrevList = (CtStatement) prevList.get(prevList.size() - 1);
+                    CtStatement stmtInNewList = (CtStatement) newList.get(i);
+                    stmtInPrevList.insertAfter(stmtInNewList);
+                    ++i;
+                }
             }
         }
     }
