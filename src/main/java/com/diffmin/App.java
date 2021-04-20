@@ -10,11 +10,17 @@ import gumtree.spoon.diff.operations.OperationKind;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 import spoon.Launcher;
 import spoon.compiler.SpoonResource;
 import spoon.compiler.SpoonResourceHelper;
 import spoon.reflect.CtModel;
+import spoon.reflect.code.CtBlock;
+import spoon.reflect.code.CtStatement;
+import spoon.reflect.code.CtStatementList;
 import spoon.reflect.declaration.CtCompilationUnit;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtPackage;
@@ -27,7 +33,7 @@ public class App {
 
     private List<CtElement> deletePatches = new ArrayList<>();
     private List<Pair<CtElement, CtElement>> updatePatches = new ArrayList<>();
-    private List<Pair<CtElement, CtElement>> insertPatches = new ArrayList<>();
+    private Set<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches = new HashSet<>();
     public CtModel modelToBeModified;
 
     /**
@@ -81,6 +87,19 @@ public class App {
     }
 
     /**
+     * Returns the corresponding list of elements in collection elements like {@link CtBlock}.
+     *
+     * @param element the collection element
+     * @return the list of entities the `element` contains
+     */
+    private List<? extends CtElement> getCollectionElementList(CtElement element) {
+        if (element instanceof CtBlock) {
+            return ((CtBlock<?>) element).getStatements();
+        }
+        throw new UnsupportedOperationException("Cannot get entities inside " + element.getClass());
+    }
+
+    /**
      * Pretty prints the model.
      *
      * @param model model to be pretty printed
@@ -116,9 +135,60 @@ public class App {
             else if (operation.getAction() instanceof Insert) {
                 CtElement srcNode = operation.getSrcNode();
                 CtElement srcNodeParent = srcNode.getParent();
-                List<CtElement> elementsToBeInserted = getElementToBeModified(srcNodeParent);
-                for (CtElement ctElement : elementsToBeInserted) {
-                    insertPatches.add(new Pair<>(ctElement, srcNodeParent));
+                List<? extends CtElement> newCollectionList =
+                        getCollectionElementList(srcNodeParent);
+                // Assuming only one element will be matched in the previous model.
+                CtElement correspondingElementInPrevModel =
+                        getElementToBeModified(srcNodeParent).get(0);
+                List<? extends CtElement> prevCollectionList =
+                        getCollectionElementList(correspondingElementInPrevModel);
+
+                List<CtElement> clonedPrevList = new ArrayList<>(prevCollectionList);
+                List<CtElement> clonedNewList = new ArrayList<>(newCollectionList);
+
+                if (clonedPrevList.isEmpty()) {
+                    for (int i = 0; i < clonedNewList.size(); ++i) {
+                        CtElement elementToBeInserted = clonedNewList.get(i);
+                        insertPatches.add(
+                                new ImmutableTriple<>(
+                                        i,
+                                        elementToBeInserted,
+                                        correspondingElementInPrevModel
+                                )
+                        );
+                    }
+                }
+                else {
+                    int i = 0;
+                    for (; i < Math.min(clonedPrevList.size(), clonedNewList.size()); ++i) {
+                        CtElement prevElement = clonedPrevList.get(i);
+                        CtElement newElement = clonedNewList.get(i);
+                        if (!prevElement.equals(newElement)) {
+                            clonedPrevList.add(i, newElement);
+                            insertPatches.add(
+                                    new ImmutableTriple<>(
+                                            i,
+                                            newElement,
+                                            correspondingElementInPrevModel
+                                    )
+                            );
+                        }
+                    }
+                    while (i < clonedNewList.size()) {
+                        CtElement prevElement = clonedPrevList.get(clonedPrevList.size() - 1);
+                        CtElement newElement = clonedNewList.get(i);
+                        if (!prevElement.equals(newElement)) {
+                            clonedPrevList.add(newElement);
+                            insertPatches.add(
+                                    new ImmutableTriple<>(
+                                            i,
+                                            newElement,
+                                            correspondingElementInPrevModel
+                                    )
+                            );
+                        }
+                        ++i;
+                    }
                 }
             }
         }
@@ -136,10 +206,21 @@ public class App {
             CtElement newNode = update.getSecond();
             prevNode.replace(newNode);
         }
-        for (Pair<CtElement, CtElement> patch : insertPatches) {
-            CtElement prevNode = patch.getFirst();
-            CtElement newNode = patch.getSecond();
-            prevNode.replace(newNode);
+        for (ImmutableTriple<Integer, CtElement, CtElement> insert : insertPatches) {
+            int where = insert.left;
+            CtElement toBeInserted = insert.middle;
+            CtElement inWhichElement = insert.right;
+
+            switch (toBeInserted.getRoleInParent()) {
+                case STATEMENT:
+                    ((CtStatementList) inWhichElement)
+                            .addStatement(where, (CtStatement) toBeInserted.clone());
+                    break;
+                default:
+                    throw new UnsupportedOperationException(
+                            "Unhandled role: " + toBeInserted.getRoleInParent()
+                    );
+            }
         }
     }
 
