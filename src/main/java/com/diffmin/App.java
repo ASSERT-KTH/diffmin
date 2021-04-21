@@ -23,10 +23,12 @@ import spoon.reflect.code.CtExpression;
 import spoon.reflect.code.CtInvocation;
 import spoon.reflect.code.CtStatement;
 import spoon.reflect.code.CtStatementList;
+import spoon.reflect.declaration.CtClass;
 import spoon.reflect.declaration.CtCompilationUnit;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtPackage;
 import spoon.reflect.declaration.CtType;
+import spoon.reflect.declaration.CtTypeMember;
 
 /**
  * Entry point of the project. Computes the edit script and uses it to patch the.
@@ -100,6 +102,8 @@ public class App {
                 return ((CtStatementList) element.getParent()).getStatements();
             case ARGUMENT:
                 return ((CtInvocation<?>) element.getParent()).getArguments();
+            case TYPE_MEMBER:
+                return ((CtClass<?>) element.getParent()).getTypeMembers();
             default:
                 throw new UnsupportedOperationException(
                         "Unsupported role: " + element.getRoleInParent()
@@ -199,6 +203,10 @@ public class App {
                     else {
                         arguments.add(where, (CtExpression<?>) toBeInserted);
                     }
+                    break;
+                case TYPE_MEMBER:
+                    ((CtClass<?>) inWhichElement)
+                            .addTypeMemberAt(where, (CtTypeMember) toBeInserted);
                     break;
                 default:
                     throw new UnsupportedOperationException(
