@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.IntStream;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import spoon.Launcher;
 import spoon.compiler.SpoonResource;
@@ -138,58 +139,17 @@ public class App {
                 List<? extends CtElement> newCollectionList =
                         getCollectionElementList(srcNodeParent);
                 // Assuming only one element will be matched in the previous model.
-                CtElement correspondingElementInPrevModel =
+                CtElement parentElementInPrevModel =
                         getElementToBeModified(srcNodeParent).get(0);
-                List<? extends CtElement> prevCollectionList =
-                        getCollectionElementList(correspondingElementInPrevModel);
 
-                List<CtElement> clonedPrevList = new ArrayList<>(prevCollectionList);
-                List<CtElement> clonedNewList = new ArrayList<>(newCollectionList);
+                int srcNodeIndex = IntStream.range(0, newCollectionList.size())
+                        .filter(i -> newCollectionList.get(i) == srcNode)
+                        .findFirst()
+                        .getAsInt();
 
-                if (clonedPrevList.isEmpty()) {
-                    for (int i = 0; i < clonedNewList.size(); ++i) {
-                        CtElement elementToBeInserted = clonedNewList.get(i);
-                        insertPatches.add(
-                                new ImmutableTriple<>(
-                                        i,
-                                        elementToBeInserted,
-                                        correspondingElementInPrevModel
-                                )
-                        );
-                    }
-                }
-                else {
-                    int i = 0;
-                    for (; i < Math.min(clonedPrevList.size(), clonedNewList.size()); ++i) {
-                        CtElement prevElement = clonedPrevList.get(i);
-                        CtElement newElement = clonedNewList.get(i);
-                        if (!prevElement.equals(newElement)) {
-                            clonedPrevList.add(i, newElement);
-                            insertPatches.add(
-                                    new ImmutableTriple<>(
-                                            i,
-                                            newElement,
-                                            correspondingElementInPrevModel
-                                    )
-                            );
-                        }
-                    }
-                    while (i < clonedNewList.size()) {
-                        CtElement prevElement = clonedPrevList.get(clonedPrevList.size() - 1);
-                        CtElement newElement = clonedNewList.get(i);
-                        if (!prevElement.equals(newElement)) {
-                            clonedPrevList.add(newElement);
-                            insertPatches.add(
-                                    new ImmutableTriple<>(
-                                            i,
-                                            newElement,
-                                            correspondingElementInPrevModel
-                                    )
-                            );
-                        }
-                        ++i;
-                    }
-                }
+                insertPatches.add(
+                        new ImmutableTriple<>(srcNodeIndex, srcNode, parentElementInPrevModel)
+                );
             }
         }
     }
