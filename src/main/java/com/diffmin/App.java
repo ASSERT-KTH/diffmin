@@ -19,7 +19,6 @@ import spoon.Launcher;
 import spoon.compiler.SpoonResource;
 import spoon.compiler.SpoonResourceHelper;
 import spoon.reflect.CtModel;
-import spoon.reflect.code.CtBlock;
 import spoon.reflect.code.CtStatement;
 import spoon.reflect.code.CtStatementList;
 import spoon.reflect.declaration.CtCompilationUnit;
@@ -88,16 +87,20 @@ public class App {
     }
 
     /**
-     * Returns the corresponding list of elements in collection elements like {@link CtBlock}.
+     * Returns the corresponding list of elements in parent.
      *
-     * @param element the collection element
-     * @return the list of entities the `element` contains
+     * @param element the element whose parent is a collection
+     * @return the list of entities the `element`'s parent contains
      */
     private List<? extends CtElement> getCollectionElementList(CtElement element) {
-        if (element instanceof CtBlock) {
-            return ((CtBlock<?>) element).getStatements();
+        switch (element.getRoleInParent()) {
+            case STATEMENT:
+                return ((CtStatementList) element.getParent()).getStatements();
+            default:
+                throw new UnsupportedOperationException(
+                        "Unsupported role: " + element.getRoleInParent()
+                );
         }
-        throw new UnsupportedOperationException("Cannot get entities inside " + element.getClass());
     }
 
     /**
@@ -137,7 +140,7 @@ public class App {
                 CtElement srcNode = operation.getSrcNode();
                 CtElement srcNodeParent = srcNode.getParent();
                 List<? extends CtElement> newCollectionList =
-                        getCollectionElementList(srcNodeParent);
+                        getCollectionElementList(srcNode);
                 // Assuming only one element will be matched in the previous model.
                 CtElement parentElementInPrevModel =
                         getElementToBeModified(srcNodeParent).get(0);
