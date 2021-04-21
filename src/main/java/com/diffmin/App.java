@@ -19,6 +19,8 @@ import spoon.Launcher;
 import spoon.compiler.SpoonResource;
 import spoon.compiler.SpoonResourceHelper;
 import spoon.reflect.CtModel;
+import spoon.reflect.code.CtExpression;
+import spoon.reflect.code.CtInvocation;
 import spoon.reflect.code.CtStatement;
 import spoon.reflect.code.CtStatementList;
 import spoon.reflect.declaration.CtCompilationUnit;
@@ -96,6 +98,8 @@ public class App {
         switch (element.getRoleInParent()) {
             case STATEMENT:
                 return ((CtStatementList) element.getParent()).getStatements();
+            case ARGUMENT:
+                return ((CtInvocation<?>) element.getParent()).getArguments();
             default:
                 throw new UnsupportedOperationException(
                         "Unsupported role: " + element.getRoleInParent()
@@ -178,6 +182,23 @@ public class App {
                 case STATEMENT:
                     ((CtStatementList) inWhichElement)
                             .addStatement(where, (CtStatement) toBeInserted.clone());
+                    break;
+                case ARGUMENT:
+                    List<CtExpression<?>> arguments =
+                            ((CtInvocation<?>) inWhichElement).getArguments();
+                    // If size of the arguments list is 0, we cannot add an argument to it because
+                    // when it is empty, it is an instance of EmptyClearableList. Thus, instead, we
+                    // use the `addArgument` API.
+                    if (arguments.isEmpty()) {
+                        ((CtInvocation<?>) inWhichElement)
+                                .addArgument((CtExpression<?>) toBeInserted);
+                    }
+                    // `addArgument` API cannot be used here as it only appends the new argument
+                    // and we cannot do precise insertions by providing the index. But a non-empty
+                    // argument list is an instance of ModelList which can be mutated.
+                    else {
+                        arguments.add(where, (CtExpression<?>) toBeInserted);
+                    }
                     break;
                 default:
                     throw new UnsupportedOperationException(
