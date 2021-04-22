@@ -177,6 +177,11 @@ public class App {
             CtElement newNode = update.getSecond();
             prevNode.replace(newNode);
         }
+        applyInsertion();
+    }
+
+    /** Apply all the insert patches generated. */
+    public void applyInsertion() {
         for (ImmutableTriple<Integer, CtElement, CtElement> insert : insertPatches) {
             int where = insert.left;
             CtElement toBeInserted = insert.middle;
