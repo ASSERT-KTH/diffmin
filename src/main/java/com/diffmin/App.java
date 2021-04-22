@@ -192,6 +192,7 @@ public class App {
                     ((CtStatementList) inWhichElement)
                             .addStatement(where, (CtStatement) toBeInserted.clone());
                     break;
+                // FIXME temporary workaround until INRIA/spoon#3885 is merged
                 case ARGUMENT:
                     List<CtExpression<?>> arguments =
                             ((CtInvocation<?>) inWhichElement).getArguments();
