@@ -181,7 +181,7 @@ public class App {
     }
 
     /** Apply the insert patch. */
-    public static void applyInsertion(ImmutableTriple<Integer, CtElement, CtElement> insert) {
+    private static void applyInsertion(ImmutableTriple<Integer, CtElement, CtElement> insert) {
         int where = insert.left;
         CtElement toBeInserted = insert.middle;
         CtElement inWhichElement = insert.right;
