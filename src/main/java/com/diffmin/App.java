@@ -177,48 +177,46 @@ public class App {
             CtElement newNode = update.getSecond();
             prevNode.replace(newNode);
         }
-        applyInsertion();
+        insertPatches.forEach(App::applyInsertion);
     }
 
-    /** Apply all the insert patches generated. */
-    public void applyInsertion() {
-        for (ImmutableTriple<Integer, CtElement, CtElement> insert : insertPatches) {
-            int where = insert.left;
-            CtElement toBeInserted = insert.middle;
-            CtElement inWhichElement = insert.right;
+    /** Apply the insert patch. */
+    public static void applyInsertion(ImmutableTriple<Integer, CtElement, CtElement> insert) {
+        int where = insert.left;
+        CtElement toBeInserted = insert.middle;
+        CtElement inWhichElement = insert.right;
 
-            switch (toBeInserted.getRoleInParent()) {
-                case STATEMENT:
-                    ((CtStatementList) inWhichElement)
-                            .addStatement(where, (CtStatement) toBeInserted.clone());
-                    break;
-                // FIXME temporary workaround until INRIA/spoon#3885 is merged
-                case ARGUMENT:
-                    List<CtExpression<?>> arguments =
-                            ((CtInvocation<?>) inWhichElement).getArguments();
-                    // If size of the arguments list is 0, we cannot add an argument to it because
-                    // when it is empty, it is an instance of EmptyClearableList. Thus, instead, we
-                    // use the `addArgument` API.
-                    if (arguments.isEmpty()) {
-                        ((CtInvocation<?>) inWhichElement)
-                                .addArgument((CtExpression<?>) toBeInserted);
-                    }
-                    // `addArgument` API cannot be used here as it only appends the new argument
-                    // and we cannot do precise insertions by providing the index. But a non-empty
-                    // argument list is an instance of ModelList which can be mutated.
-                    else {
-                        arguments.add(where, (CtExpression<?>) toBeInserted);
-                    }
-                    break;
-                case TYPE_MEMBER:
-                    ((CtClass<?>) inWhichElement)
-                            .addTypeMemberAt(where, (CtTypeMember) toBeInserted);
-                    break;
-                default:
-                    throw new UnsupportedOperationException(
-                            "Unhandled role: " + toBeInserted.getRoleInParent()
-                    );
-            }
+        switch (toBeInserted.getRoleInParent()) {
+            case STATEMENT:
+                ((CtStatementList) inWhichElement)
+                        .addStatement(where, (CtStatement) toBeInserted.clone());
+                break;
+            // FIXME temporary workaround until INRIA/spoon#3885 is merged
+            case ARGUMENT:
+                List<CtExpression<?>> arguments =
+                        ((CtInvocation<?>) inWhichElement).getArguments();
+                // If size of the arguments list is 0, we cannot add an argument to it because
+                // when it is empty, it is an instance of EmptyClearableList. Thus, instead, we
+                // use the `addArgument` API.
+                if (arguments.isEmpty()) {
+                    ((CtInvocation<?>) inWhichElement)
+                            .addArgument((CtExpression<?>) toBeInserted);
+                }
+                // `addArgument` API cannot be used here as it only appends the new argument
+                // and we cannot do precise insertions by providing the index. But a non-empty
+                // argument list is an instance of ModelList which can be mutated.
+                else {
+                    arguments.add(where, (CtExpression<?>) toBeInserted);
+                }
+                break;
+            case TYPE_MEMBER:
+                ((CtClass<?>) inWhichElement)
+                        .addTypeMemberAt(where, (CtTypeMember) toBeInserted);
+                break;
+            default:
+                throw new UnsupportedOperationException(
+                        "Unhandled role: " + toBeInserted.getRoleInParent()
+                );
         }
     }
 
