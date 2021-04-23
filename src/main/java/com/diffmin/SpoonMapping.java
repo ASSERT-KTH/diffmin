@@ -5,22 +5,24 @@ import com.github.gumtreediff.matchers.Mapping;
 import com.github.gumtreediff.matchers.MappingStore;
 import com.github.gumtreediff.tree.ITree;
 import gumtree.spoon.builder.SpoonGumTreeBuilder;
+import spoon.reflect.declaration.CtElement;
+
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import spoon.reflect.declaration.CtElement;
 
 /**
  * A class for storing matches between tree nodes in two Spoon trees.
  *
- * <p>This class is adapted from the Spork project see <a
- * href="https://github.com/KTH/spork/blob/ba0a33f2bd2f02dc6a50474733be67850f47ae2d/src/main/kotlin/se/kth/spork/spoon/matching/SpoonMapping.kt">se.kth.spork.spoon.matching.SpoonMapping.kt</a>
+ * This class is adapted from the Spork project see
+ * <a href="https://github.com/KTH/spork/blob/ba0a33f2bd2f02dc6a50474733be67850f47ae2d/src/main/kotlin/se/kth/spork/spoon/matching/SpoonMapping.kt">se.kth.spork.spoon.matching.SpoonMapping.kt</a>
  */
 public class SpoonMapping {
     private final Map<CtElement, CtElement> srcToDst;
     private final Map<CtElement, CtElement> dstToSrc;
+
 
     private SpoonMapping() {
         srcToDst = new IdentityHashMap<>();
@@ -28,14 +30,13 @@ public class SpoonMapping {
     }
 
     /**
-     * Create a Spoon mapping from a GumTree mapping. Every GumTree node must have a "spoon_object"
-     * metadata object that refers back to a Spoon node. As this mapping does not cover the whole
-     * Spoon tree, additional mappings are inferred.
+     * Create a Spoon mapping from a GumTree mapping. Every GumTree node must have a "spoon_object" metadata object that
+     * refers back to a Spoon node. As this mapping does not cover the whole Spoon tree, additional mappings are
+     * inferred.
+     * <p>
+     * TODO verify that the mapping inference is actually correct
      *
-     * <p>TODO verify that the mapping inference is actually correct
-     *
-     * @param gumtreeMapping A GumTree mapping in which each mapped node has a "spoon_object"
-     *     metadata object.
+     * @param gumtreeMapping A GumTree mapping in which each mapped node has a "spoon_object" metadata object.
      * @return A SpoonMapping corresponding to the passed GumTree mapping.
      */
     public static SpoonMapping fromGumTreeMapping(MappingStore gumtreeMapping) {
@@ -48,12 +49,9 @@ public class SpoonMapping {
                 if (spoonSrc != spoonDst) { // at least one was non-null
                     throw new IllegalStateException();
                 }
-                if (m.first.getType()
-                        != -1) { // -1 is the type given to root node in SpoonGumTreeBuilder
-                    throw new IllegalStateException(
-                            "non-root node "
-                                    + m.first.toShortString()
-                                    + " had no mapped Spoon object");
+                if (m.first.getType() != -1) { // -1 is the type given to root node in SpoonGumTreeBuilder
+                    throw new IllegalStateException("non-root node " + m.first.toShortString()
+                            + " had no mapped Spoon object");
                 }
             } else {
                 mapping.put(spoonSrc, spoonDst);
@@ -71,12 +69,11 @@ public class SpoonMapping {
     }
 
     /**
-     * Infer additional node matches. It is done by iterating over all pairs of matched nodes, and
-     * for each pair, descending down into the tree incrementally and matching nodes that
-     * gumtree-spoon-ast-diff is known to ignore. See <a
-     * href="https://github.com/SpoonLabs/gumtree-spoon-ast-diff/blob/dae908192bee7773b38d149baff831ee616ec524/src/main/java/gumtree/spoon/builder/TreeScanner.java#L71-L84">TreeScanner</a>
-     * to see how nodes are ignored in gumtree-spoon-ast-diff. The process is repeated for each pair
-     * of newly matched nodes, until no new matches can be found.
+     * Infer additional node matches. It is done by iterating over all pairs of matched nodes, and for each pair,
+     * descending down into the tree incrementally and matching nodes that gumtree-spoon-ast-diff is known to
+     * ignore. See <a href="https://github.com/SpoonLabs/gumtree-spoon-ast-diff/blob/dae908192bee7773b38d149baff831ee616ec524/src/main/java/gumtree/spoon/builder/TreeScanner.java#L71-L84">TreeScanner</a>
+     * to see how nodes are ignored in gumtree-spoon-ast-diff. The process is repeated for each pair of newly matched
+     * nodes, until no new matches can be found.
      *
      * @param matches Pairs of matched nodes, as computed by GumTree/gumtree-spoon-ast-diff.
      */
@@ -84,8 +81,7 @@ public class SpoonMapping {
         while (!matches.isEmpty()) {
             List<Pair<CtElement, CtElement>> newMatches = new ArrayList<>();
             for (Pair<CtElement, CtElement> srcAndDst : matches) {
-                newMatches.addAll(
-                        inferAdditionalMappings(srcAndDst.getFirst(), srcAndDst.getSecond()));
+                newMatches.addAll(inferAdditionalMappings(srcAndDst.getFirst(), srcAndDst.getSecond()));
             }
             matches = newMatches;
         }
@@ -105,8 +101,7 @@ public class SpoonMapping {
 
             if (srcToDst.containsKey(srcChild) || !GumtreeSpoonAstDiff.isToIgnore(srcChild)) {
                 srcIdx++;
-            } else if (dstToSrc.containsKey(dstChild)
-                    || !GumtreeSpoonAstDiff.isToIgnore(dstChild)) {
+            } else if (dstToSrc.containsKey(dstChild) || !GumtreeSpoonAstDiff.isToIgnore(dstChild)) {
                 dstIdx++;
             } else {
                 put(srcChild, dstChild);
@@ -154,11 +149,9 @@ public class SpoonMapping {
 
     @Override
     public String toString() {
-        return "SpoonMapping{"
-                + "srcs="
-                + srcToDst.entrySet().stream().map(this::formatEntry).collect(Collectors.toList())
-                + ", dsts="
-                + dstToSrc.entrySet().stream().map(this::formatEntry).collect(Collectors.toList())
-                + '}';
+        return "SpoonMapping{" +
+                "srcs=" + srcToDst.entrySet().stream().map(this::formatEntry).collect(Collectors.toList()) +
+                ", dsts=" + dstToSrc.entrySet().stream().map(this::formatEntry).collect(Collectors.toList()) +
+                '}';
     }
 }
