@@ -33,7 +33,6 @@ import spoon.reflect.declaration.CtType;
 import spoon.reflect.declaration.CtTypeMember;
 import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 import spoon.reflect.visitor.PrettyPrinter;
-import spoon.support.StandardEnvironment;
 
 /**
  * Entry point of the project. Computes the edit script and uses it to patch the.
@@ -74,7 +73,8 @@ public class App {
      * @return A pair (diff, modelToPatch)
      * @throws FileNotFoundException If either file is not found
      */
-    public static Pair<Diff, CtModel> computeDiff(File prevFile, File newFile) throws FileNotFoundException {
+    public static Pair<Diff, CtModel> computeDiff(File prevFile, File newFile)
+            throws FileNotFoundException {
         CtElement prevPackage = getPackage(prevFile);
         CtElement newPackage = getPackage(newFile);
         Diff diff = new AstComparator().compare(prevPackage, newPackage);
@@ -83,6 +83,8 @@ public class App {
     }
 
     /**
+     * Build a model.
+     *
      * @param file File with Java source code
      * @return A built model
      * @throws FileNotFoundException Exception raised via {@link SpoonResourceHelper}
@@ -246,7 +248,8 @@ public class App {
         }
         try {
             App app = new App(args[0]);
-            Pair<Diff, CtModel> diffAndModel = App.computeDiff(new File(args[0]), new File(args[1]));
+            Pair<Diff, CtModel> diffAndModel =
+                    App.computeDiff(new File(args[0]), new File(args[1]));
             app.generatePatch(diffAndModel.getFirst());
             app.applyPatch();
             CtModel patchedCtModel = diffAndModel.getSecond();

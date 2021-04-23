@@ -12,14 +12,12 @@ import spoon.reflect.reference.CtReference;
  *
  * <a href="https://github.com/SpoonLabs/gumtree-spoon-ast-diff/blob/dae908192bee7773b38d149baff831ee616ec524/LICENSE.txt#L1">
  * See the license statement here.
- * </a>
- *
- * Each method is individually annotate to state where it was taken from.
+ * </a> Each method is individually annotate to state where it was taken from.
  */
 public class GumtreeSpoonAstDiff {
     /**
-     * This method is taken from gumtree-spoon-ast-diff and identifies Spoon nodes that should not be mapped into
-     * the GumTree that's build by SpoonGumTreeBuilder.
+     * This method is taken from gumtree-spoon-ast-diff and identifies Spoon nodes that should not
+     * be mapped into the GumTree that's build by SpoonGumTreeBuilder.
      *
      * @author Mattias Martinez
      *
@@ -33,7 +31,8 @@ public class GumtreeSpoonAstDiff {
      */
     public static boolean isToIgnore(CtElement element) {
         if (element instanceof CtStatementList && !(element instanceof CtCase)) {
-            return element.getRoleInParent() != CtRole.ELSE && element.getRoleInParent() != CtRole.THEN;
+            return element.getRoleInParent()
+                    != CtRole.ELSE && element.getRoleInParent() != CtRole.THEN;
         }
 
         if (element instanceof CtReference && element.getRoleInParent() == CtRole.SUPER_TYPE) {
