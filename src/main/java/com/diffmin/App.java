@@ -5,6 +5,7 @@ import com.github.gumtreediff.actions.model.Delete;
 import com.github.gumtreediff.actions.model.Insert;
 import com.github.gumtreediff.actions.model.Update;
 import gumtree.spoon.AstComparator;
+import gumtree.spoon.diff.Diff;
 import gumtree.spoon.diff.operations.Operation;
 import gumtree.spoon.diff.operations.OperationKind;
 import java.io.File;
@@ -38,7 +39,6 @@ public class App {
     private List<CtElement> deletePatches = new ArrayList<>();
     private List<Pair<CtElement, CtElement>> updatePatches = new ArrayList<>();
     private Set<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches = new HashSet<>();
-    public CtModel modelToBeModified;
 
     /**
      * Constructor of the kernel to generate and apply patch.
@@ -48,7 +48,6 @@ public class App {
     public App(String prevFilePath) {
         final Launcher launcher = new Launcher();
         launcher.addInputResource(prevFilePath);
-        modelToBeModified = launcher.buildModel();
     }
 
     /**
@@ -58,7 +57,7 @@ public class App {
      * @return Root package of the file
      * @throws FileNotFoundException Exception raise via {@link SpoonResourceHelper}
      */
-    public CtPackage getPackage(File file) throws FileNotFoundException {
+    public static CtPackage getPackage(File file) throws FileNotFoundException {
         final SpoonResource resource = SpoonResourceHelper.createResource(file);
         final Launcher launcher = new Launcher();
         launcher.addInputResource(resource);
@@ -67,27 +66,19 @@ public class App {
     }
 
     /**
-     * Computes the list of operations which is used for patching `f2`.
+     * Computes the diff between the two files and returns the diff and the model to be patched.
      *
      * @param prevFile Previous version of the file
      * @param newFile Modified version of the file
-     * @return List of operations in the edit script
-     * @throws Exception Exception raised via {@link AstComparator}
+     * @return A pair (diff, modelToPatch)
+     * @throws FileNotFoundException If either file is not found
      */
-    public List<Operation> getOperations(File prevFile, File newFile) throws Exception {
+    public static Pair<Diff, CtModel> computeDiff(File prevFile, File newFile) throws FileNotFoundException {
         CtElement prevPackage = getPackage(prevFile);
         CtElement newPackage = getPackage(newFile);
-        return new AstComparator().compare(prevPackage, newPackage).getRootOperations();
-    }
-
-    /**
-     * Return the node in the prev file model for further modification.
-     *
-     * @param element node which has to be located in prev file model
-     * @return located node in the prev file model
-     */
-    private List<CtElement> getElementToBeModified(CtElement element) {
-        return element.getPath().evaluateOn(modelToBeModified.getRootPackage());
+        Diff diff = new AstComparator().compare(prevPackage, newPackage);
+        CtModel modelToBeModified = prevPackage.getFactory().getModel();
+        return new Pair<>(diff, modelToBeModified);
     }
 
     /**
@@ -126,40 +117,36 @@ public class App {
     /**
      * Generate list of patches for each individual operation type - {@link OperationKind}.
      *
-     * @param operations List of operations which will govern how `prevFile` will be patched
+     * @param diff Diff to generate patch for
      */
-    public void generatePatch(List<Operation> operations) {
+    public void generatePatch(Diff diff) {
+        List<Operation> operations = diff.getRootOperations();
+        SpoonMapping mapping = SpoonMapping.fromGumTreeMapping(diff.getMappingsComp());
 
-        for (Operation operation : operations) {
+        for (Operation<?> operation : operations) {
             if (operation.getAction() instanceof Delete) {
                 CtElement removedNode = operation.getSrcNode();
-                List<CtElement> elementsToBeDeleted = getElementToBeModified(removedNode);
-                deletePatches.addAll(elementsToBeDeleted);
+                deletePatches.add(removedNode);
             }
             else if (operation.getAction() instanceof Update) {
                 CtElement srcNode = operation.getSrcNode();
                 CtElement dstNode = operation.getDstNode();
-                List<CtElement> elementsToBeUpdated = getElementToBeModified(srcNode);
-                for (CtElement ctElement : elementsToBeUpdated) {
-                    updatePatches.add(new Pair<>(ctElement, dstNode));
-                }
+                updatePatches.add(new Pair<>(srcNode, dstNode));
             }
             else if (operation.getAction() instanceof Insert) {
-                CtElement srcNode = operation.getSrcNode();
-                CtElement srcNodeParent = srcNode.getParent();
+                CtElement insertedNode = operation.getSrcNode();
+                CtElement insertedNodeParent = insertedNode.getParent();
                 List<? extends CtElement> newCollectionList =
-                        getCollectionElementList(srcNode);
-                // Assuming only one element will be matched in the previous model.
-                CtElement parentElementInPrevModel =
-                        getElementToBeModified(srcNodeParent).get(0);
+                        getCollectionElementList(insertedNode);
+                CtElement parentElementInPrevModel = mapping.get(insertedNodeParent);
 
                 int srcNodeIndex = IntStream.range(0, newCollectionList.size())
-                        .filter(i -> newCollectionList.get(i) == srcNode)
+                        .filter(i -> newCollectionList.get(i) == insertedNode)
                         .findFirst()
                         .getAsInt();
 
                 insertPatches.add(
-                        new ImmutableTriple<>(srcNodeIndex, srcNode, parentElementInPrevModel)
+                        new ImmutableTriple<>(srcNodeIndex, insertedNode, parentElementInPrevModel)
                 );
             }
         }
@@ -232,10 +219,10 @@ public class App {
         }
         try {
             App app = new App(args[0]);
-            List<Operation> operations = app.getOperations(new File(args[0]), new File(args[1]));
-            app.generatePatch(operations);
+            Pair<Diff, CtModel> diffAndModel = App.computeDiff(new File(args[0]), new File(args[1]));
+            app.generatePatch(diffAndModel.getFirst());
             app.applyPatch();
-            CtModel patchedCtModel = app.modelToBeModified;
+            CtModel patchedCtModel = diffAndModel.getSecond();
             System.out.println(app.displayModifiedModel(patchedCtModel));
         } catch (Exception e) {
             e.printStackTrace();

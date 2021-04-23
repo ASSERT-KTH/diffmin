@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
+import com.diffmin.util.Pair;
+import gumtree.spoon.diff.Diff;
 import gumtree.spoon.diff.operations.Operation;
 import java.io.File;
 import java.nio.file.Path;
@@ -161,10 +163,10 @@ public class AppTest {
 
         App app = new App(sources.prevPath.toString());
 
-        List<Operation> operations = app.getOperations(f1, f2);
-        app.generatePatch(operations);
+        Pair<Diff, CtModel> diffAndModel = App.computeDiff(f1, f2);
+        app.generatePatch(diffAndModel.getFirst());
         app.applyPatch();
-        CtModel patchedCtModel = app.modelToBeModified;
+        CtModel patchedCtModel = diffAndModel.getSecond();
 
         final Launcher launcher = new Launcher();
         launcher.getEnvironment().setCommentEnabled(false);
