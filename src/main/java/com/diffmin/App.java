@@ -35,9 +35,7 @@ import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 import spoon.reflect.visitor.PrettyPrinter;
 import spoon.support.StandardEnvironment;
 
-/**
- * Entry point of the project. Computes the edit script and uses it to patch the.
- */
+/** Entry point of the project. Computes the edit script and uses it to patch the. */
 public class App {
 
     private List<CtElement> deletePatches = new ArrayList<>();
@@ -74,7 +72,8 @@ public class App {
      * @return A pair (diff, modelToPatch)
      * @throws FileNotFoundException If either file is not found
      */
-    public static Pair<Diff, CtModel> computeDiff(File prevFile, File newFile) throws FileNotFoundException {
+    public static Pair<Diff, CtModel> computeDiff(File prevFile, File newFile)
+            throws FileNotFoundException {
         CtElement prevPackage = getPackage(prevFile);
         CtElement newPackage = getPackage(newFile);
         Diff diff = new AstComparator().compare(prevPackage, newPackage);
@@ -83,6 +82,8 @@ public class App {
     }
 
     /**
+     * Build a model.
+     *
      * @param file File with Java source code
      * @return A built model
      * @throws FileNotFoundException Exception raised via {@link SpoonResourceHelper}
@@ -93,11 +94,12 @@ public class App {
 
         Environment env = launcher.getEnvironment();
         env.setCommentEnabled(false); // TODO enable comments
-        env.setPrettyPrinterCreator(() -> {
-            DefaultJavaPrettyPrinter printer = new DefaultJavaPrettyPrinter(env);
-            printer.setIgnoreImplicit(false); // required to NOT print e.g. implicit "this"
-            return printer;
-        });
+        env.setPrettyPrinterCreator(
+                () -> {
+                    DefaultJavaPrettyPrinter printer = new DefaultJavaPrettyPrinter(env);
+                    printer.setIgnoreImplicit(false); // required to NOT print e.g. implicit "this"
+                    return printer;
+                });
 
         launcher.addInputResource(resource);
         return launcher.buildModel();
@@ -119,8 +121,7 @@ public class App {
                 return ((CtClass<?>) element.getParent()).getTypeMembers();
             default:
                 throw new UnsupportedOperationException(
-                        "Unsupported role: " + element.getRoleInParent()
-                );
+                        "Unsupported role: " + element.getRoleInParent());
         }
     }
 
@@ -154,34 +155,31 @@ public class App {
             if (operation.getAction() instanceof Delete) {
                 CtElement removedNode = operation.getSrcNode();
                 deletePatches.add(removedNode);
-            }
-            else if (operation.getAction() instanceof Update) {
+            } else if (operation.getAction() instanceof Update) {
                 CtElement srcNode = operation.getSrcNode();
                 CtElement dstNode = operation.getDstNode();
                 updatePatches.add(new Pair<>(srcNode, dstNode));
-            }
-            else if (operation.getAction() instanceof Insert) {
+            } else if (operation.getAction() instanceof Insert) {
                 CtElement insertedNode = operation.getSrcNode();
                 CtElement insertedNodeParent = insertedNode.getParent();
                 List<? extends CtElement> newCollectionList =
                         getCollectionElementList(insertedNode);
                 CtElement parentElementInPrevModel = mapping.get(insertedNodeParent);
 
-                int srcNodeIndex = IntStream.range(0, newCollectionList.size())
-                        .filter(i -> newCollectionList.get(i) == insertedNode)
-                        .findFirst()
-                        .getAsInt();
+                int srcNodeIndex =
+                        IntStream.range(0, newCollectionList.size())
+                                .filter(i -> newCollectionList.get(i) == insertedNode)
+                                .findFirst()
+                                .getAsInt();
 
                 insertPatches.add(
-                        new ImmutableTriple<>(srcNodeIndex, insertedNode, parentElementInPrevModel)
-                );
+                        new ImmutableTriple<>(
+                                srcNodeIndex, insertedNode, parentElementInPrevModel));
             }
         }
     }
 
-    /**
-     * Apply all the patches generated.
-     */
+    /** Apply all the patches generated. */
     public void applyPatch() {
         for (CtElement element : deletePatches) {
             element.delete();
@@ -205,16 +203,14 @@ public class App {
                 ((CtStatementList) inWhichElement)
                         .addStatement(where, (CtStatement) toBeInserted.clone());
                 break;
-            // FIXME temporary workaround until INRIA/spoon#3885 is merged
+                // FIXME temporary workaround until INRIA/spoon#3885 is merged
             case ARGUMENT:
-                List<CtExpression<?>> arguments =
-                        ((CtInvocation<?>) inWhichElement).getArguments();
+                List<CtExpression<?>> arguments = ((CtInvocation<?>) inWhichElement).getArguments();
                 // If size of the arguments list is 0, we cannot add an argument to it because
                 // when it is empty, it is an instance of EmptyClearableList. Thus, instead, we
                 // use the `addArgument` API.
                 if (arguments.isEmpty()) {
-                    ((CtInvocation<?>) inWhichElement)
-                            .addArgument((CtExpression<?>) toBeInserted);
+                    ((CtInvocation<?>) inWhichElement).addArgument((CtExpression<?>) toBeInserted);
                 }
                 // `addArgument` API cannot be used here as it only appends the new argument
                 // and we cannot do precise insertions by providing the index. But a non-empty
@@ -224,13 +220,11 @@ public class App {
                 }
                 break;
             case TYPE_MEMBER:
-                ((CtClass<?>) inWhichElement)
-                        .addTypeMemberAt(where, (CtTypeMember) toBeInserted);
+                ((CtClass<?>) inWhichElement).addTypeMemberAt(where, (CtTypeMember) toBeInserted);
                 break;
             default:
                 throw new UnsupportedOperationException(
-                        "Unhandled role: " + toBeInserted.getRoleInParent()
-                );
+                        "Unhandled role: " + toBeInserted.getRoleInParent());
         }
     }
 
@@ -246,7 +240,8 @@ public class App {
         }
         try {
             App app = new App(args[0]);
-            Pair<Diff, CtModel> diffAndModel = App.computeDiff(new File(args[0]), new File(args[1]));
+            Pair<Diff, CtModel> diffAndModel =
+                    App.computeDiff(new File(args[0]), new File(args[1]));
             app.generatePatch(diffAndModel.getFirst());
             app.applyPatch();
             CtModel patchedCtModel = diffAndModel.getSecond();
