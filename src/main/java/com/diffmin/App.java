@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.stream.IntStream;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import spoon.Launcher;
+import spoon.compiler.Environment;
 import spoon.compiler.SpoonResource;
 import spoon.compiler.SpoonResourceHelper;
 import spoon.reflect.CtModel;
@@ -30,6 +31,9 @@ import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtPackage;
 import spoon.reflect.declaration.CtType;
 import spoon.reflect.declaration.CtTypeMember;
+import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
+import spoon.reflect.visitor.PrettyPrinter;
+import spoon.support.StandardEnvironment;
 
 /**
  * Entry point of the project. Computes the edit script and uses it to patch the.
@@ -55,13 +59,10 @@ public class App {
      *
      * @param file File whose all {@link CtPackage} needs to returned
      * @return Root package of the file
-     * @throws FileNotFoundException Exception raise via {@link SpoonResourceHelper}
+     * @throws FileNotFoundException If the file cannot be found
      */
     public static CtPackage getPackage(File file) throws FileNotFoundException {
-        final SpoonResource resource = SpoonResourceHelper.createResource(file);
-        final Launcher launcher = new Launcher();
-        launcher.addInputResource(resource);
-        CtModel model = launcher.buildModel();
+        CtModel model = buildModel(file);
         return model.getRootPackage();
     }
 
@@ -79,6 +80,27 @@ public class App {
         Diff diff = new AstComparator().compare(prevPackage, newPackage);
         CtModel modelToBeModified = prevPackage.getFactory().getModel();
         return new Pair<>(diff, modelToBeModified);
+    }
+
+    /**
+     * @param file File with Java source code
+     * @return A built model
+     * @throws FileNotFoundException Exception raised via {@link SpoonResourceHelper}
+     */
+    static CtModel buildModel(File file) throws FileNotFoundException {
+        final SpoonResource resource = SpoonResourceHelper.createResource(file);
+        final Launcher launcher = new Launcher();
+
+        Environment env = launcher.getEnvironment();
+        env.setCommentEnabled(false); // TODO enable comments
+        env.setPrettyPrinterCreator(() -> {
+            DefaultJavaPrettyPrinter printer = new DefaultJavaPrettyPrinter(env);
+            printer.setIgnoreImplicit(false); // required to NOT print e.g. implicit "this"
+            return printer;
+        });
+
+        launcher.addInputResource(resource);
+        return launcher.buildModel();
     }
 
     /**
@@ -111,7 +133,12 @@ public class App {
     public String displayModifiedModel(CtModel model) {
         CtType<?> firstType = model.getAllTypes().stream().findFirst().get();
         CtCompilationUnit cu = firstType.getFactory().CompilationUnit().getOrCreate(firstType);
-        return cu.prettyprint();
+
+        // Note: Must explicitly create our configured pretty printer, as spoon-9.0.0 has that
+        // CompilationUnit.prettyprint() always uses the auto-import pretty-printer, and not
+        // our custom configured one.
+        PrettyPrinter printer = cu.getFactory().getEnvironment().createPrettyPrinter();
+        return printer.prettyprint(cu);
     }
 
     /**

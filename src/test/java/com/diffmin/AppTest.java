@@ -24,6 +24,7 @@ import spoon.Launcher;
 import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtCompilationUnit;
 import spoon.reflect.declaration.CtType;
+import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 
 /**
  * Unit test for simple App.
@@ -166,10 +167,7 @@ public class AppTest {
         app.applyPatch();
         CtModel patchedCtModel = diffAndModel.getSecond();
 
-        final Launcher launcher = new Launcher();
-        launcher.getEnvironment().setCommentEnabled(false);
-        launcher.addInputResource(sources.newPath.toString());
-        CtModel expectedModel = launcher.buildModel();
+        CtModel expectedModel = App.buildModel(sources.newPath.toFile());
         Optional<CtType<?>> firstType = expectedModel.getAllTypes().stream().findFirst();
 
         if (firstType.isEmpty()) {
