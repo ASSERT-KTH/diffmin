@@ -13,6 +13,7 @@ import spoon.reflect.path.CtRole;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,13 +29,13 @@ import java.util.stream.Collectors;
  * <a href="https://github.com/KTH/spork/blob/ba0a33f2bd2f02dc6a50474733be67850f47ae2d/src/main/kotlin/se/kth/spork/spoon/matching/SpoonMapping.kt">se.kth.spork.spoon.matching.SpoonMapping.kt</a>
  */
 public class SpoonMapping {
-    private Map<CtElement, CtElement> srcs;
-    private Map<CtElement, CtElement> dsts;
+    private final Map<CtElement, CtElement> srcs;
+    private final Map<CtElement, CtElement> dsts;
 
 
     private SpoonMapping() {
-        srcs = new HashMap<>();
-        dsts = new HashMap<>();
+        srcs = new IdentityHashMap<>();
+        dsts = new IdentityHashMap<>();
     }
 
     /**
@@ -61,7 +62,7 @@ public class SpoonMapping {
                     throw new IllegalStateException("non-root node " + m.first.toShortString()
                             + " had no mapped Spoon object");
                 }
-            } else if (!ignoreMapping(spoonSrc, spoonDst)) {
+            } else {
                 mapping.put(spoonSrc, spoonDst);
             }
         }
@@ -74,40 +75,6 @@ public class SpoonMapping {
         return srcs.values().stream()
                 .map(dst -> new Pair<>(getSrc(dst), dst))
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * Sometimes, we want to ignore a mapping that GumTree produces, as it causes trouble for the merge algorithm.
-     */
-    private static boolean ignoreMapping(CtElement src, CtElement dst) {
-        if (src.getClass() != dst.getClass()) {
-            // It is important to only map nodes of the exact same type, as 3DM has no notion of "correct"
-            // parent-child relationships. Mapping e.g. an array type reference to a non-array type reference
-            // may cause the resulting merge to try to treat either as the other, which does not work out.
-            return true;
-        } else if (isAnnotationValue(src) != isAnnotationValue(dst)) {
-            // If one element is an annotation value, but the other is not, mapping them will cause issues resolving
-            // the key of the value. This is a problem related to how annotations are represented in Spoon, namely
-            // that the keys in the annotation map aren't proper nodes.
-            return true;
-        } else if (isPrimitiveType(src) != isPrimitiveType(dst)) {
-            return true;
-        } else if (src instanceof CtWrapper || dst instanceof CtWrapper) {
-            // the CtWrapper elements do not represent real Spoon nodes, and so are just noise
-            return true;
-        }
-        return false;
-    }
-
-    private static boolean isPrimitiveType(CtElement elem) {
-        if (elem instanceof CtTypeInformation) {
-            return ((CtTypeInformation) elem).isPrimitive();
-        }
-        return false;
-    }
-
-    private static boolean isAnnotationValue(CtElement elem) {
-        return elem.getParent() instanceof CtAnnotation && elem.getRoleInParent() == CtRole.VALUE;
     }
 
     /**
@@ -147,10 +114,8 @@ public class SpoonMapping {
             } else if (hasDst(dstChild) || !GumtreeSpoonAstDiff.isToIgnore(dstChild)) {
                 dstIdx++;
             } else {
-                if (!ignoreMapping(srcChild, dstChild)) {
-                    put(srcChild, dstChild);
-                    newMatches.add(new Pair<>(srcChild, dstChild));
-                }
+                put(srcChild, dstChild);
+                newMatches.add(new Pair<>(srcChild, dstChild));
                 srcIdx++;
                 dstIdx++;
             }
@@ -173,13 +138,6 @@ public class SpoonMapping {
 
     public CtElement getSrc(CtElement dst) {
         return dsts.get(dst);
-    }
-
-    public void remove(CtElement element) {
-        CtElement removedDst = srcs.remove(element);
-        CtElement removedSrc = dsts.remove(element);
-        dsts.remove(removedDst);
-        srcs.remove(removedSrc);
     }
 
     public void put(CtElement src, CtElement dst) {
