@@ -1,41 +1,32 @@
 package com.diffmin;
 
+import com.diffmin.util.Pair;
 import com.github.gumtreediff.matchers.Mapping;
 import com.github.gumtreediff.matchers.MappingStore;
 import com.github.gumtreediff.tree.ITree;
-import com.github.gumtreediff.utils.Pair;
-import gumtree.spoon.builder.CtWrapper;
 import gumtree.spoon.builder.SpoonGumTreeBuilder;
-import spoon.reflect.declaration.CtAnnotation;
 import spoon.reflect.declaration.CtElement;
-import spoon.reflect.declaration.CtTypeInformation;
-import spoon.reflect.path.CtRole;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * A class for storing matches between tree nodes in two Spoon trees. Inspired by the MappingStore class from GumTree.
- * <p>
- * See <a href="https://github.com/GumTreeDiff/gumtree/blob/f20565b6261fe3465cd1b3e0914028d5e87699b2/core/src/main/java/com/github/gumtreediff/matchers/MappingStore.java#L1-L151">
- * MappingStore.java
- * </a> in GumTree for comparison.
+ * A class for storing matches between tree nodes in two Spoon trees.
  *
  * This class is adapted from the Spork project see
  * <a href="https://github.com/KTH/spork/blob/ba0a33f2bd2f02dc6a50474733be67850f47ae2d/src/main/kotlin/se/kth/spork/spoon/matching/SpoonMapping.kt">se.kth.spork.spoon.matching.SpoonMapping.kt</a>
  */
 public class SpoonMapping {
-    private final Map<CtElement, CtElement> srcs;
-    private final Map<CtElement, CtElement> dsts;
+    private final Map<CtElement, CtElement> srcToDst;
+    private final Map<CtElement, CtElement> dstToSrc;
 
 
     private SpoonMapping() {
-        srcs = new IdentityHashMap<>();
-        dsts = new IdentityHashMap<>();
+        srcToDst = new IdentityHashMap<>();
+        dstToSrc = new IdentityHashMap<>();
     }
 
     /**
@@ -72,8 +63,8 @@ public class SpoonMapping {
     }
 
     private List<Pair<CtElement, CtElement>> asList() {
-        return srcs.values().stream()
-                .map(dst -> new Pair<>(getSrc(dst), dst))
+        return srcToDst.entrySet().stream()
+                .map(srcAndDst -> new Pair<>(srcAndDst.getKey(), srcAndDst.getValue()))
                 .collect(Collectors.toList());
     }
 
@@ -89,9 +80,8 @@ public class SpoonMapping {
     private void inferAdditionalMappings(List<Pair<CtElement, CtElement>> matches) {
         while (!matches.isEmpty()) {
             List<Pair<CtElement, CtElement>> newMatches = new ArrayList<>();
-            for (CtElement dst : new ArrayList<>(srcs.values())) {
-                CtElement src = getSrc(dst);
-                newMatches.addAll(inferAdditionalMappings(src, dst));
+            for (Pair<CtElement, CtElement> srcAndDst : matches) {
+                newMatches.addAll(inferAdditionalMappings(srcAndDst.getFirst(), srcAndDst.getSecond()));
             }
             matches = newMatches;
         }
@@ -109,9 +99,9 @@ public class SpoonMapping {
             CtElement srcChild = srcChildren.get(srcIdx);
             CtElement dstChild = dstChildren.get(dstIdx);
 
-            if (hasSrc(srcChild) || !GumtreeSpoonAstDiff.isToIgnore(srcChild)) {
+            if (srcToDst.containsKey(srcChild) || !GumtreeSpoonAstDiff.isToIgnore(srcChild)) {
                 srcIdx++;
-            } else if (hasDst(dstChild) || !GumtreeSpoonAstDiff.isToIgnore(dstChild)) {
+            } else if (dstToSrc.containsKey(dstChild) || !GumtreeSpoonAstDiff.isToIgnore(dstChild)) {
                 dstIdx++;
             } else {
                 put(srcChild, dstChild);
@@ -124,25 +114,29 @@ public class SpoonMapping {
         return newMatches;
     }
 
-    public boolean hasSrc(CtElement src) {
-        return srcs.containsKey(src);
-    }
+    /**
+     * Get the element mapped to this element in the mapping. This is a two-way method: if the
+     * element passed in is a destination, its corresponding source is fetched, and vice versa.
+     *
+     * @param e The element to fetch a mapped element for
+     * @return The mapped element
+     */
+    public CtElement get(CtElement e) {
+        CtElement mappedDst = srcToDst.get(e);
+        CtElement mappedSrc = dstToSrc.get(e);
 
-    public boolean hasDst(CtElement dst) {
-        return dsts.containsKey(dst);
-    }
-
-    public CtElement getDst(CtElement src) {
-        return srcs.get(src);
-    }
-
-    public CtElement getSrc(CtElement dst) {
-        return dsts.get(dst);
+        if (mappedDst != null) {
+            return mappedDst;
+        } else if (mappedSrc != null) {
+            return mappedSrc;
+        } else {
+            throw new IllegalArgumentException("Element not mapped: " + e);
+        }
     }
 
     public void put(CtElement src, CtElement dst) {
-        srcs.put(src, dst);
-        dsts.put(dst, src);
+        srcToDst.put(src, dst);
+        dstToSrc.put(dst, src);
     }
 
     private static CtElement getSpoonNode(ITree gumtreeNode) {
@@ -155,9 +149,9 @@ public class SpoonMapping {
 
     @Override
     public String toString() {
-        return "SpoonMappingStore{" +
-                "srcs=" + srcs.entrySet().stream().map(this::formatEntry).collect(Collectors.toList()) +
-                ", dsts=" + dsts.entrySet().stream().map(this::formatEntry).collect(Collectors.toList()) +
+        return "SpoonMapping{" +
+                "srcs=" + srcToDst.entrySet().stream().map(this::formatEntry).collect(Collectors.toList()) +
+                ", dsts=" + dstToSrc.entrySet().stream().map(this::formatEntry).collect(Collectors.toList()) +
                 '}';
     }
 }
