@@ -25,6 +25,6 @@ jobs:
       with:
         java-version: 11
     - name: Style check
-      run: 'mvn checkstyle:check'
+      run: 'mvn spotless:check'
     - name: Run test suite
       run: mvn test
