@@ -23,9 +23,7 @@ import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtCompilationUnit;
 import spoon.reflect.declaration.CtType;
 
-/**
- * Unit test for simple App.
- */
+/** Unit test for simple App. */
 public class AppTest {
 
     public static final Path RESOURCES_BASE_DIR = Paths.get("src/test/resources");
@@ -42,9 +40,7 @@ public class AppTest {
                 .map(Arguments::of);
     }
 
-    /**
-     * Class to provide test resources.
-     */
+    /** Class to provide test resources. */
     public static class TestResources {
         public String parent;
         public Path prevPath;
@@ -72,11 +68,7 @@ public class AppTest {
         public static TestResources fromTestDirectory(File testDir) {
             Path path = testDir.toPath();
             String parent = testDir.getName();
-            return new TestResources(
-                    path.resolve("prev.java"),
-                    path.resolve("new.java"),
-                    parent
-            );
+            return new TestResources(path.resolve("prev.java"), path.resolve("new.java"), parent);
         }
 
         @Override
@@ -90,9 +82,7 @@ public class AppTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
             return getArgumentSourceStream(
-                    PURE_UPDATE_PATCHES.toFile(),
-                    TestResources::fromTestDirectory
-            );
+                    PURE_UPDATE_PATCHES.toFile(), TestResources::fromTestDirectory);
         }
     }
 
@@ -101,9 +91,7 @@ public class AppTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
             return getArgumentSourceStream(
-                    PURE_DELETE_PATCHES.toFile(),
-                    TestResources::fromTestDirectory
-            );
+                    PURE_DELETE_PATCHES.toFile(), TestResources::fromTestDirectory);
         }
     }
 
@@ -112,9 +100,7 @@ public class AppTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
             return getArgumentSourceStream(
-                    DELETE_UPDATE_PATCHES.toFile(),
-                    TestResources::fromTestDirectory
-            );
+                    DELETE_UPDATE_PATCHES.toFile(), TestResources::fromTestDirectory);
         }
     }
 
@@ -123,9 +109,7 @@ public class AppTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
             return getArgumentSourceStream(
-                    PURE_INSERT_PATCHES.toFile(),
-                    TestResources::fromTestDirectory
-            );
+                    PURE_INSERT_PATCHES.toFile(), TestResources::fromTestDirectory);
         }
     }
 
@@ -175,19 +159,16 @@ public class AppTest {
         if (firstType.isEmpty()) {
             assertTrue(
                     patchedCtModel.getAllTypes().stream().findFirst().isEmpty(),
-                    "Patched prev file is not empty"
-            );
-        }
-        else {
+                    "Patched prev file is not empty");
+        } else {
             CtType<?> retrievedFirstType = firstType.get();
-            CtCompilationUnit cu = retrievedFirstType
-                    .getFactory().CompilationUnit().getOrCreate(retrievedFirstType);
+            CtCompilationUnit cu =
+                    retrievedFirstType
+                            .getFactory()
+                            .CompilationUnit()
+                            .getOrCreate(retrievedFirstType);
             String patchedProgram = app.displayModifiedModel(patchedCtModel);
-            assertEquals(
-                    cu.prettyprint(),
-                    patchedProgram,
-                    "Prev file was not patched correctly"
-            );
+            assertEquals(cu.prettyprint(), patchedProgram, "Prev file was not patched correctly");
         }
     }
 }
