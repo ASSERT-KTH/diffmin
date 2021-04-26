@@ -1,0 +1,1 @@
+class TypeParameter<A, B> { }
