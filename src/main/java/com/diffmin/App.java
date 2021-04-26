@@ -44,16 +44,6 @@ public class App {
     private Set<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches = new HashSet<>();
 
     /**
-     * Constructor of the kernel to generate and apply patch.
-     *
-     * @param prevFilePath Path of the previous version of the file which needs to be modified
-     */
-    public App(String prevFilePath) {
-        final Launcher launcher = new Launcher();
-        launcher.addInputResource(prevFilePath);
-    }
-
-    /**
      * Returns the root package of the file.
      *
      * @param file File whose all {@link CtPackage} needs to returned
@@ -247,7 +237,7 @@ public class App {
             return;
         }
         try {
-            App app = new App(args[0]);
+            App app = new App();
             Pair<Diff, CtModel> diffAndModel =
                     App.computeDiff(new File(args[0]), new File(args[1]));
             app.generatePatch(diffAndModel.getFirst());
