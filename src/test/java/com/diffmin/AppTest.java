@@ -2,14 +2,13 @@ package com.diffmin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-import gumtree.spoon.diff.operations.Operation;
+import com.diffmin.util.Pair;
+import gumtree.spoon.diff.Diff;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -18,18 +17,20 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
-import spoon.Launcher;
 import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtCompilationUnit;
 import spoon.reflect.declaration.CtType;
 
 /** Unit test for simple App. */
 public class AppTest {
-
     public static final Path RESOURCES_BASE_DIR = Paths.get("src/test/resources");
+
     public static final Path PURE_DELETE_PATCHES = RESOURCES_BASE_DIR.resolve("delete");
+
     public static final Path PURE_UPDATE_PATCHES = RESOURCES_BASE_DIR.resolve("update");
+
     public static final Path PURE_INSERT_PATCHES = RESOURCES_BASE_DIR.resolve("insert");
+
     public static final Path DELETE_UPDATE_PATCHES = RESOURCES_BASE_DIR.resolve("delete+update");
 
     private static Stream<? extends Arguments> getArgumentSourceStream(
@@ -43,7 +44,9 @@ public class AppTest {
     /** Class to provide test resources. */
     public static class TestResources {
         public String parent;
+
         public Path prevPath;
+
         public Path newPath; // stylised new
 
         /**
@@ -132,30 +135,21 @@ public class AppTest {
     }
 
     @ParameterizedTest
-    @ArgumentsSource(PureInsertPatches.class)
+    @ArgumentsSource(AppTest.PureInsertPatches.class)
     void should_apply_pure_insert_patches(TestResources sources) throws Exception {
-        // FIXME Enable multiple-insert test case once spoon mapping is available
-        assumeFalse(sources.parent.equals("multiple-insert"));
         runTests(sources);
     }
 
     private static void runTests(TestResources sources) throws Exception {
         File f1 = sources.prevPath.toFile();
         File f2 = sources.newPath.toFile();
-
-        App app = new App(sources.prevPath.toString());
-
-        List<Operation> operations = app.getOperations(f1, f2);
-        app.generatePatch(operations);
+        App app = new App();
+        Pair<Diff, CtModel> diffAndModel = App.computeDiff(f1, f2);
+        app.generatePatch(diffAndModel.getFirst());
         app.applyPatch();
-        CtModel patchedCtModel = app.modelToBeModified;
-
-        final Launcher launcher = new Launcher();
-        launcher.getEnvironment().setCommentEnabled(false);
-        launcher.addInputResource(sources.newPath.toString());
-        CtModel expectedModel = launcher.buildModel();
+        CtModel patchedCtModel = diffAndModel.getSecond();
+        CtModel expectedModel = App.buildModel(sources.newPath.toFile());
         Optional<CtType<?>> firstType = expectedModel.getAllTypes().stream().findFirst();
-
         if (firstType.isEmpty()) {
             assertTrue(
                     patchedCtModel.getAllTypes().stream().findFirst().isEmpty(),
