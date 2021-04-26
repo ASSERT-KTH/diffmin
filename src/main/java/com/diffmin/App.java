@@ -60,7 +60,7 @@ public class App {
      * @param prevFile Previous version of the file
      * @param newFile Modified version of the file
      * @return List of operations in the edit script
-     * @throws Exception Exception raised via {@link AstComparator}
+     * @throws FileNotFoundException Exception raised via {@link AstComparator}
      */
     public static Pair<Diff, CtModel> computeDiff(File prevFile, File newFile)
             throws FileNotFoundException {
@@ -74,7 +74,7 @@ public class App {
     /**
      * Build a model.
      *
-     * @param element node which has to be located in prev file model
+     * @param file program whose model needs to be built
      * @return located node in the prev file model
      * @throws FileNotFoundException Exception raised via {@link SpoonResourceHelper}
      */
@@ -134,7 +134,7 @@ public class App {
     /**
      * Generate list of patches for each individual operation type - {@link OperationKind}.
      *
-     * @param operations List of operations which will govern how `prevFile` will be patched
+     * @param diff {@link Diff} object
      */
     public void generatePatch(Diff diff) {
         List<Operation> operations = diff.getRootOperations();
