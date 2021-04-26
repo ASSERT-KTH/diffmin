@@ -34,13 +34,15 @@ import spoon.reflect.declaration.CtTypeMember;
 import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 import spoon.reflect.visitor.PrettyPrinter;
 
+
 /**
  * Entry point of the project. Computes the edit script and uses it to patch the.
  */
 public class App {
-
     private List<CtElement> deletePatches = new ArrayList<>();
+
     private List<Pair<CtElement, CtElement>> updatePatches = new ArrayList<>();
+
     private Set<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches = new HashSet<>();
 
     /**
@@ -48,7 +50,7 @@ public class App {
      *
      * @param file File whose all {@link CtPackage} needs to returned
      * @return Root package of the file
-     * @throws FileNotFoundException If the file cannot be found
+     * @throws FileNotFoundException Exception raise via {@link SpoonResourceHelper}
      */
     public static CtPackage getPackage(File file) throws FileNotFoundException {
         CtModel model = buildModel(file);
@@ -58,13 +60,15 @@ public class App {
     /**
      * Computes the diff between the two files and returns the diff and the model to be patched.
      *
-     * @param prevFile Previous version of the file
-     * @param newFile Modified version of the file
-     * @return A pair (diff, modelToPatch)
-     * @throws FileNotFoundException If either file is not found
+     * @param prevFile
+     * 		Previous version of the file
+     * @param newFile
+     * 		Modified version of the file
+     * @return List of operations in the edit script
+     * @throws Exception
+     * 		Exception raised via {@link AstComparator}
      */
-    public static Pair<Diff, CtModel> computeDiff(File prevFile, File newFile)
-            throws FileNotFoundException {
+    public static Pair<Diff, CtModel> computeDiff(File prevFile, File newFile) throws FileNotFoundException {
         CtElement prevPackage = getPackage(prevFile);
         CtElement newPackage = getPackage(newFile);
         Diff diff = new AstComparator().compare(prevPackage, newPackage);
@@ -75,22 +79,24 @@ public class App {
     /**
      * Build a model.
      *
-     * @param file File with Java source code
-     * @return A built model
-     * @throws FileNotFoundException Exception raised via {@link SpoonResourceHelper}
+     * @param element
+     * 		node which has to be located in prev file model
+     * @return located node in the prev file model
+     * @throws FileNotFoundException
+     * 		Exception raised via {@link SpoonResourceHelper}
      */
     static CtModel buildModel(File file) throws FileNotFoundException {
         final SpoonResource resource = SpoonResourceHelper.createResource(file);
         final Launcher launcher = new Launcher();
-
         Environment env = launcher.getEnvironment();
-        env.setCommentEnabled(false); // TODO enable comments
+        env.setCommentEnabled(false);// TODO enable comments
+
         env.setPrettyPrinterCreator(() -> {
             DefaultJavaPrettyPrinter printer = new DefaultJavaPrettyPrinter(env);
-            printer.setIgnoreImplicit(false); // required to NOT print e.g. implicit "this"
+            printer.setIgnoreImplicit(false);// required to NOT print e.g. implicit "this"
+
             return printer;
         });
-
         launcher.addInputResource(resource);
         return launcher.buildModel();
     }
@@ -125,7 +131,6 @@ public class App {
     public String displayModifiedModel(CtModel model) {
         CtType<?> firstType = model.getAllTypes().stream().findFirst().get();
         CtCompilationUnit cu = firstType.getFactory().CompilationUnit().getOrCreate(firstType);
-
         // Note: Must explicitly create our configured pretty printer, as spoon-9.0.0 has that
         // CompilationUnit.prettyprint() always uses the auto-import pretty-printer, and not
         // our custom configured one.
@@ -136,37 +141,26 @@ public class App {
     /**
      * Generate list of patches for each individual operation type - {@link OperationKind}.
      *
-     * @param diff Diff to generate patch for
+     * @param operations List of operations which will govern how `prevFile` will be patched
      */
     public void generatePatch(Diff diff) {
         List<Operation> operations = diff.getRootOperations();
         SpoonMapping mapping = SpoonMapping.fromGumTreeMapping(diff.getMappingsComp());
-
         for (Operation<?> operation : operations) {
             if (operation.getAction() instanceof Delete) {
                 CtElement removedNode = operation.getSrcNode();
                 deletePatches.add(removedNode);
-            }
-            else if (operation.getAction() instanceof Update) {
+            } else if (operation.getAction() instanceof Update) {
                 CtElement srcNode = operation.getSrcNode();
                 CtElement dstNode = operation.getDstNode();
                 updatePatches.add(new Pair<>(srcNode, dstNode));
-            }
-            else if (operation.getAction() instanceof Insert) {
+            } else if (operation.getAction() instanceof Insert) {
                 CtElement insertedNode = operation.getSrcNode();
                 CtElement insertedNodeParent = insertedNode.getParent();
-                List<? extends CtElement> newCollectionList =
-                        getCollectionElementList(insertedNode);
+                List<? extends CtElement> newCollectionList = getCollectionElementList(insertedNode);
                 CtElement parentElementInPrevModel = mapping.get(insertedNodeParent);
-
-                int srcNodeIndex = IntStream.range(0, newCollectionList.size())
-                        .filter(i -> newCollectionList.get(i) == insertedNode)
-                        .findFirst()
-                        .getAsInt();
-
-                insertPatches.add(
-                        new ImmutableTriple<>(srcNodeIndex, insertedNode, parentElementInPrevModel)
-                );
+                int srcNodeIndex = IntStream.range(0, newCollectionList.size()).filter(( i) -> newCollectionList.get(i) == insertedNode).findFirst().getAsInt();
+                insertPatches.add(new ImmutableTriple<>(srcNodeIndex, insertedNode, parentElementInPrevModel));
             }
         }
     }
@@ -238,13 +232,12 @@ public class App {
         }
         try {
             App app = new App();
-            Pair<Diff, CtModel> diffAndModel =
-                    App.computeDiff(new File(args[0]), new File(args[1]));
+            Pair<Diff, CtModel> diffAndModel = App.computeDiff(new File(args[0]), new File(args[1]));
             app.generatePatch(diffAndModel.getFirst());
             app.applyPatch();
             CtModel patchedCtModel = diffAndModel.getSecond();
             System.out.println(app.displayModifiedModel(patchedCtModel));
-        } catch (Exception e) {
+        } catch (java.lang.Exception e) {
             e.printStackTrace();
         }
     }
