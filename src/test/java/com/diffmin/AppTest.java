@@ -160,7 +160,7 @@ public class AppTest {
         File f1 = sources.prevPath.toFile();
         File f2 = sources.newPath.toFile();
 
-        App app = new App(sources.prevPath.toString());
+        App app = new App();
 
         Pair<Diff, CtModel> diffAndModel = App.computeDiff(f1, f2);
         app.generatePatch(diffAndModel.getFirst());
