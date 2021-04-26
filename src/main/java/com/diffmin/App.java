@@ -137,6 +137,7 @@ public class App {
      * @param operations List of operations which will govern how `prevFile` will be patched
      */
     public void generatePatch(Diff diff) {
+        @SuppressWarnings("rawtypes")
         List<Operation> operations = diff.getRootOperations();
         SpoonMapping mapping = SpoonMapping.fromGumTreeMapping(diff.getMappingsComp());
         for (Operation<?> operation : operations) {
