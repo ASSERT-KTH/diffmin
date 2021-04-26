@@ -139,7 +139,7 @@ public class SpoonMapping {
         }
     }
 
-    public void put(CtElement src, CtElement dst) {
+    private void put(CtElement src, CtElement dst) {
         srcToDst.put(src, dst);
         dstToSrc.put(dst, src);
     }
