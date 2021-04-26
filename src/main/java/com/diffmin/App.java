@@ -30,9 +30,7 @@ import spoon.reflect.declaration.CtPackage;
 import spoon.reflect.declaration.CtType;
 import spoon.reflect.declaration.CtTypeMember;
 
-/**
- * Entry point of the project. Computes the edit script and uses it to patch the.
- */
+/** Entry point of the project. Computes the edit script and uses it to patch the. */
 public class App {
 
     private List<CtElement> deletePatches = new ArrayList<>();
@@ -106,8 +104,7 @@ public class App {
                 return ((CtClass<?>) element.getParent()).getTypeMembers();
             default:
                 throw new UnsupportedOperationException(
-                        "Unsupported role: " + element.getRoleInParent()
-                );
+                        "Unsupported role: " + element.getRoleInParent());
         }
     }
 
@@ -135,39 +132,33 @@ public class App {
                 CtElement removedNode = operation.getSrcNode();
                 List<CtElement> elementsToBeDeleted = getElementToBeModified(removedNode);
                 deletePatches.addAll(elementsToBeDeleted);
-            }
-            else if (operation.getAction() instanceof Update) {
+            } else if (operation.getAction() instanceof Update) {
                 CtElement srcNode = operation.getSrcNode();
                 CtElement dstNode = operation.getDstNode();
                 List<CtElement> elementsToBeUpdated = getElementToBeModified(srcNode);
                 for (CtElement ctElement : elementsToBeUpdated) {
                     updatePatches.add(new Pair<>(ctElement, dstNode));
                 }
-            }
-            else if (operation.getAction() instanceof Insert) {
+            } else if (operation.getAction() instanceof Insert) {
                 CtElement srcNode = operation.getSrcNode();
                 CtElement srcNodeParent = srcNode.getParent();
-                List<? extends CtElement> newCollectionList =
-                        getCollectionElementList(srcNode);
+                List<? extends CtElement> newCollectionList = getCollectionElementList(srcNode);
                 // Assuming only one element will be matched in the previous model.
-                CtElement parentElementInPrevModel =
-                        getElementToBeModified(srcNodeParent).get(0);
+                CtElement parentElementInPrevModel = getElementToBeModified(srcNodeParent).get(0);
 
-                int srcNodeIndex = IntStream.range(0, newCollectionList.size())
-                        .filter(i -> newCollectionList.get(i) == srcNode)
-                        .findFirst()
-                        .getAsInt();
+                int srcNodeIndex =
+                        IntStream.range(0, newCollectionList.size())
+                                .filter(i -> newCollectionList.get(i) == srcNode)
+                                .findFirst()
+                                .getAsInt();
 
                 insertPatches.add(
-                        new ImmutableTriple<>(srcNodeIndex, srcNode, parentElementInPrevModel)
-                );
+                        new ImmutableTriple<>(srcNodeIndex, srcNode, parentElementInPrevModel));
             }
         }
     }
 
-    /**
-     * Apply all the patches generated.
-     */
+    /** Apply all the patches generated. */
     public void applyPatch() {
         for (CtElement element : deletePatches) {
             element.delete();
@@ -191,16 +182,14 @@ public class App {
                 ((CtStatementList) inWhichElement)
                         .addStatement(where, (CtStatement) toBeInserted.clone());
                 break;
-            // FIXME temporary workaround until INRIA/spoon#3885 is merged
+                // FIXME temporary workaround until INRIA/spoon#3885 is merged
             case ARGUMENT:
-                List<CtExpression<?>> arguments =
-                        ((CtInvocation<?>) inWhichElement).getArguments();
+                List<CtExpression<?>> arguments = ((CtInvocation<?>) inWhichElement).getArguments();
                 // If size of the arguments list is 0, we cannot add an argument to it because
                 // when it is empty, it is an instance of EmptyClearableList. Thus, instead, we
                 // use the `addArgument` API.
                 if (arguments.isEmpty()) {
-                    ((CtInvocation<?>) inWhichElement)
-                            .addArgument((CtExpression<?>) toBeInserted);
+                    ((CtInvocation<?>) inWhichElement).addArgument((CtExpression<?>) toBeInserted);
                 }
                 // `addArgument` API cannot be used here as it only appends the new argument
                 // and we cannot do precise insertions by providing the index. But a non-empty
@@ -210,13 +199,11 @@ public class App {
                 }
                 break;
             case TYPE_MEMBER:
-                ((CtClass<?>) inWhichElement)
-                        .addTypeMemberAt(where, (CtTypeMember) toBeInserted);
+                ((CtClass<?>) inWhichElement).addTypeMemberAt(where, (CtTypeMember) toBeInserted);
                 break;
             default:
                 throw new UnsupportedOperationException(
-                        "Unhandled role: " + toBeInserted.getRoleInParent()
-                );
+                        "Unhandled role: " + toBeInserted.getRoleInParent());
         }
     }
 
