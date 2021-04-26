@@ -36,11 +36,12 @@ import spoon.reflect.visitor.PrettyPrinter;
 
 /** Entry point of the project. Computes the edit script and uses it to patch the. */
 public class App {
-    private List<CtElement> deletePatches = new ArrayList<>();
+    private final List<CtElement> deletePatches = new ArrayList<>();
 
-    private List<Pair<CtElement, CtElement>> updatePatches = new ArrayList<>();
+    private final List<Pair<CtElement, CtElement>> updatePatches = new ArrayList<>();
 
-    private Set<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches = new HashSet<>();
+    private final Set<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches =
+            new HashSet<>();
 
     /**
      * Returns the root package of the file.
