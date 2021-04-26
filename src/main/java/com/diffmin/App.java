@@ -232,7 +232,7 @@ public class App {
             app.applyPatch();
             CtModel patchedCtModel = diffAndModel.getSecond();
             System.out.println(app.displayModifiedModel(patchedCtModel));
-        } catch (java.lang.Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
