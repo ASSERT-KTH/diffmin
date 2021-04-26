@@ -34,10 +34,7 @@ import spoon.reflect.declaration.CtTypeMember;
 import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 import spoon.reflect.visitor.PrettyPrinter;
 
-
-/**
- * Entry point of the project. Computes the edit script and uses it to patch the.
- */
+/** Entry point of the project. Computes the edit script and uses it to patch the. */
 public class App {
     private List<CtElement> deletePatches = new ArrayList<>();
 
@@ -60,15 +57,13 @@ public class App {
     /**
      * Computes the diff between the two files and returns the diff and the model to be patched.
      *
-     * @param prevFile
-     * 		Previous version of the file
-     * @param newFile
-     * 		Modified version of the file
+     * @param prevFile Previous version of the file
+     * @param newFile Modified version of the file
      * @return List of operations in the edit script
-     * @throws Exception
-     * 		Exception raised via {@link AstComparator}
+     * @throws Exception Exception raised via {@link AstComparator}
      */
-    public static Pair<Diff, CtModel> computeDiff(File prevFile, File newFile) throws FileNotFoundException {
+    public static Pair<Diff, CtModel> computeDiff(File prevFile, File newFile)
+            throws FileNotFoundException {
         CtElement prevPackage = getPackage(prevFile);
         CtElement newPackage = getPackage(newFile);
         Diff diff = new AstComparator().compare(prevPackage, newPackage);
@@ -79,24 +74,23 @@ public class App {
     /**
      * Build a model.
      *
-     * @param element
-     * 		node which has to be located in prev file model
+     * @param element node which has to be located in prev file model
      * @return located node in the prev file model
-     * @throws FileNotFoundException
-     * 		Exception raised via {@link SpoonResourceHelper}
+     * @throws FileNotFoundException Exception raised via {@link SpoonResourceHelper}
      */
     static CtModel buildModel(File file) throws FileNotFoundException {
         final SpoonResource resource = SpoonResourceHelper.createResource(file);
         final Launcher launcher = new Launcher();
         Environment env = launcher.getEnvironment();
-        env.setCommentEnabled(false);// TODO enable comments
+        env.setCommentEnabled(false); // TODO enable comments
 
-        env.setPrettyPrinterCreator(() -> {
-            DefaultJavaPrettyPrinter printer = new DefaultJavaPrettyPrinter(env);
-            printer.setIgnoreImplicit(false);// required to NOT print e.g. implicit "this"
+        env.setPrettyPrinterCreator(
+                () -> {
+                    DefaultJavaPrettyPrinter printer = new DefaultJavaPrettyPrinter(env);
+                    printer.setIgnoreImplicit(false); // required to NOT print e.g. implicit "this"
 
-            return printer;
-        });
+                    return printer;
+                });
         launcher.addInputResource(resource);
         return launcher.buildModel();
     }
@@ -117,8 +111,7 @@ public class App {
                 return ((CtClass<?>) element.getParent()).getTypeMembers();
             default:
                 throw new UnsupportedOperationException(
-                        "Unsupported role: " + element.getRoleInParent()
-                );
+                        "Unsupported role: " + element.getRoleInParent());
         }
     }
 
@@ -157,17 +150,22 @@ public class App {
             } else if (operation.getAction() instanceof Insert) {
                 CtElement insertedNode = operation.getSrcNode();
                 CtElement insertedNodeParent = insertedNode.getParent();
-                List<? extends CtElement> newCollectionList = getCollectionElementList(insertedNode);
+                List<? extends CtElement> newCollectionList =
+                        getCollectionElementList(insertedNode);
                 CtElement parentElementInPrevModel = mapping.get(insertedNodeParent);
-                int srcNodeIndex = IntStream.range(0, newCollectionList.size()).filter(( i) -> newCollectionList.get(i) == insertedNode).findFirst().getAsInt();
-                insertPatches.add(new ImmutableTriple<>(srcNodeIndex, insertedNode, parentElementInPrevModel));
+                int srcNodeIndex =
+                        IntStream.range(0, newCollectionList.size())
+                                .filter((i) -> newCollectionList.get(i) == insertedNode)
+                                .findFirst()
+                                .getAsInt();
+                insertPatches.add(
+                        new ImmutableTriple<>(
+                                srcNodeIndex, insertedNode, parentElementInPrevModel));
             }
         }
     }
 
-    /**
-     * Apply all the patches generated.
-     */
+    /** Apply all the patches generated. */
     public void applyPatch() {
         for (CtElement element : deletePatches) {
             element.delete();
@@ -191,16 +189,14 @@ public class App {
                 ((CtStatementList) inWhichElement)
                         .addStatement(where, (CtStatement) toBeInserted.clone());
                 break;
-            // FIXME temporary workaround until INRIA/spoon#3885 is merged
+                // FIXME temporary workaround until INRIA/spoon#3885 is merged
             case ARGUMENT:
-                List<CtExpression<?>> arguments =
-                        ((CtInvocation<?>) inWhichElement).getArguments();
+                List<CtExpression<?>> arguments = ((CtInvocation<?>) inWhichElement).getArguments();
                 // If size of the arguments list is 0, we cannot add an argument to it because
                 // when it is empty, it is an instance of EmptyClearableList. Thus, instead, we
                 // use the `addArgument` API.
                 if (arguments.isEmpty()) {
-                    ((CtInvocation<?>) inWhichElement)
-                            .addArgument((CtExpression<?>) toBeInserted);
+                    ((CtInvocation<?>) inWhichElement).addArgument((CtExpression<?>) toBeInserted);
                 }
                 // `addArgument` API cannot be used here as it only appends the new argument
                 // and we cannot do precise insertions by providing the index. But a non-empty
@@ -210,13 +206,11 @@ public class App {
                 }
                 break;
             case TYPE_MEMBER:
-                ((CtClass<?>) inWhichElement)
-                        .addTypeMemberAt(where, (CtTypeMember) toBeInserted);
+                ((CtClass<?>) inWhichElement).addTypeMemberAt(where, (CtTypeMember) toBeInserted);
                 break;
             default:
                 throw new UnsupportedOperationException(
-                        "Unhandled role: " + toBeInserted.getRoleInParent()
-                );
+                        "Unhandled role: " + toBeInserted.getRoleInParent());
         }
     }
 
@@ -232,7 +226,8 @@ public class App {
         }
         try {
             App app = new App();
-            Pair<Diff, CtModel> diffAndModel = App.computeDiff(new File(args[0]), new File(args[1]));
+            Pair<Diff, CtModel> diffAndModel =
+                    App.computeDiff(new File(args[0]), new File(args[1]));
             app.generatePatch(diffAndModel.getFirst());
             app.applyPatch();
             CtModel patchedCtModel = diffAndModel.getSecond();
