@@ -135,7 +135,7 @@ public class App {
     /**
      * Generate list of patches for each individual operation type - {@link OperationKind}.
      *
-     * @param diff {@link Diff} object
+     * @param diff the diff to generate a patch from
      */
     public void generatePatch(Diff diff) {
         List<Operation> operations = diff.getRootOperations();
