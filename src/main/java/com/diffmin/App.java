@@ -107,6 +107,8 @@ public class App {
                 return ((CtClass<?>) element.getParent()).getTypeMembers();
             case TYPE_PARAMETER:
                 return ((CtClass<?>) element.getParent()).getFormalCtTypeParameters();
+            case PARAMETER:
+                return ((CtConstructor<?>) element.getParent()).getParameters();
             default:
                 throw new UnsupportedOperationException(
                         "Unsupported role: " + element.getRoleInParent());
@@ -204,6 +206,16 @@ public class App {
                             .addFormalCtTypeParameter((CtTypeParameter) toBeInserted);
                 } else {
                     typeParameters.add(where, (CtTypeParameter) toBeInserted);
+                }
+                break;
+            case PARAMETER:
+                // FIXME Similar workaround to the case which handles `ARGUMENT`.
+                List<CtParameter<?>> parameters =
+                        ((CtConstructor<?>) inWhichElement).getParameters();
+                if (parameters.isEmpty()) {
+                    ((CtConstructor<?>) inWhichElement).addParameter((CtParameter<?>) toBeInserted);
+                } else {
+                    parameters.add(where, (CtParameter<?>) toBeInserted);
                 }
                 break;
             default:
