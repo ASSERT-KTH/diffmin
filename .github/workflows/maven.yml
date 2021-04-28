@@ -15,6 +15,10 @@ jobs:
         java-version: 11
     - name: Build project
       run: mvn compile
+    - name: Build jar with dependencies
+      run: |
+        mvn compile assembly:single
+        java -cp target/diffmin-1.0-SNAPSHOT-jar-with-dependencies.jar com.diffmin.App
 
   test:
     runs-on: ubuntu-latest
