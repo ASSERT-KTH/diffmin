@@ -198,7 +198,8 @@ public class App {
                 ((CtClass<?>) inWhichElement).addTypeMemberAt(where, (CtTypeMember) toBeInserted);
                 break;
             case TYPE_PARAMETER:
-                // FIXME Similar workaround to the case which handles `ARGUMENT`.
+                // FIXME Temporary workaround until https://github.com/INRIA/spoon/issues/3894 is
+                // fixed.
                 List<CtTypeParameter> typeParameters =
                         ((CtClass<?>) inWhichElement).getFormalCtTypeParameters();
                 if (typeParameters.isEmpty()) {
@@ -209,7 +210,8 @@ public class App {
                 }
                 break;
             case PARAMETER:
-                // FIXME Similar workaround to the case which handles `ARGUMENT`.
+                // FIXME Temporary workaround until https://github.com/INRIA/spoon/issues/3895 is
+                // fixed.
                 List<CtParameter<?>> parameters =
                         ((CtConstructor<?>) inWhichElement).getParameters();
                 if (parameters.isEmpty()) {
