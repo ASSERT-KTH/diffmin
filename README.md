@@ -26,7 +26,22 @@ This package is not published yet but one can build the project from source.
     mvn install
     ```
 
+### Build locally
+
+Run the following command which will build a single jar file for this project
+and its dependencies.
+
+```sh
+mvn compile assembly:single
+```
+
 ### Usage
+
+Once the jar is built, the main method can be invovked using just one command.
+
+```sh
+java -jar target/diffmin-1.0-SNAPSHOT-jar-with-dependencies.jar <prev.java> <new.java>
+```
 
 ## Running the tests
 
