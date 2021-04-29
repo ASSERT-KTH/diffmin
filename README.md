@@ -57,7 +57,8 @@ mvn test
 
 ### License
 
-Explain the license. see the `[LICENSE.md](LICENSE.md)` file for details
+Licensed under the MIT License. See the `[LICENSE.md](LICENSE.md)` file for more
+details.
 
 ### Issues
 
