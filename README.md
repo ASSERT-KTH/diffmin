@@ -1,9 +1,11 @@
 # diffmin
 
-In a software development process based on code reviews, the visualization of the diff between the base, and the target
-branch is of utmost importance. It is known that spurious formatting changes pollute code reviews and lead to
-unnecessary communication and code review work. Today, the only solution for minimizing the diff is one that ignores
-white spaces. This project will aim to automatically minimize pull requests by keeping only the AST changes.
+In a software development process based on code reviews, the visualization of 
+the diff between the base, and the target branch is of utmost importance. It is
+known that spurious formatting changes pollute code reviews and lead to
+unnecessary communication and code review work. Today, the only solution for
+minimizing the diff is one that ignores white spaces. This project will aim to
+automatically minimize pull requests by keeping only the AST changes.
 
 ## Getting Started
 
