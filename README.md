@@ -62,7 +62,38 @@ details.
 
 ### Issues
 
+Issues such as bug reports, feature requests, enhancements, or questions can be
+reported at the [issues tab](https://github.com/SpoonLabs/diffmin/issues) of
+this repository. We don't follow an exact template but please explain your query
+as much as possible.
+
 ### Pull requests
+
+We welcome pull requests for this project and are always looking forward to
+review them.
+
+You can these steps to quickly submit a pull request.
+
+1. Fork the repository.
+2. Branch out to `a-meaningful-branch-name`.
+3. Make your changes and commit them along with a good summary of the changes as
+   the commit message. Refer to the [next subheading](#commit-message-guidelines)
+   for the commit message guidelines.
+3. Submit your pull request describing the changes introduced in the PR
+   description.
+4. Get your pull request merged!
+
+### Commit message guidelines
+
+- Commit messages must have a subject line and may have body copy. These must be
+  separated by a blank line.
+- Make sure the message is concise and not very long. A good commit message is
+  ususally atmost 80 characters long.
+- The subject line should be capitalised and must not end in a period (.).
+- The subject line must be written in imperative mood (*Fix*, not *Fixed* /
+  *Fixes* etc.)
+- The body copy must only contain explanations as to *what* and *why*, never
+  *how*. The latter belongs in documentation and implementation.
 
 ## Authors
 
