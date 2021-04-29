@@ -222,7 +222,7 @@ public class App {
     public static void main(String[] args) {
         if (args.length != 2) {
             System.out.println("Usage: DiffSpoon <file_1>  <file_2>");
-            return;
+            System.exit(1);
         }
         try {
             App app = new App();
@@ -232,8 +232,10 @@ public class App {
             app.applyPatch();
             CtModel patchedCtModel = diffAndModel.getSecond();
             System.out.println(app.displayModifiedModel(patchedCtModel));
+            System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
+            System.exit(-1);
         }
     }
 }
