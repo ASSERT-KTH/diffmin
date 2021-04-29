@@ -1,6 +1,6 @@
 class Parameter {
-    private number;
-    private divisor;
+    private int number;
+    private int divisor;
 
     Parameter (int number) {
         int divisor = 1;
