@@ -61,31 +61,16 @@ as much as possible.
 
 ### Pull requests
 
-We welcome pull requests for this project and are always looking forward to
-review them.
+Diffmin is currently in its rudimentary stages so we are not expecting a pull
+request from outside contributors as there are not many features to work on as
+of now. We will update the instructions when we feel that we have enough issues
+to tackle. In that case, we would encourage contributions from anyone.
 
-You can these steps to quickly submit a pull request.
+Internally, we do follow some guidelines before submitting a pull request.
 
-1. Fork the repository.
-2. Branch out to `a-meaningful-branch-name`.
-3. Make your changes and commit them along with a good summary of the changes as
-   the commit message. Refer to the [next subheading](#commit-message-guidelines)
-   for the commit message guidelines.
-3. Submit your pull request describing the changes introduced in the PR
-   description.
-4. Get your pull request merged!
-
-### Commit message guidelines
-
-- Commit messages must have a subject line and may have body copy. These must be
-  separated by a blank line.
-- Make sure the message is concise and not very long. A good commit message is
-  ususally atmost 80 characters long.
-- The subject line should be capitalised and must not end in a period (.).
-- The subject line must be written in imperative mood (*Fix*, not *Fixed* /
-  *Fixes* etc.)
-- The body copy must only contain explanations as to *what* and *why*, never
-  *how*. The latter belongs in documentation and implementation.
+1. PR title aptly describes the changes proposed.
+2. PR is coupled with a description so it makes the process of reviewing easier.
+3. PR addresses a single thing, e.g. a single feature or a bug.
 
 ## Authors
 
