@@ -17,25 +17,17 @@ This package is not published yet but one can build the project from source.
 2. Maven
 3. Git
 
-### Installing
-
-1. Clone the repository.
-    ```shell
-    git clone https://github.com/SpoonLabs/diffmin.git
-    ```
-2. Install dependencies.
-    ```shell
-    mvn install
-    ```
-
 ### Build locally
 
-Run the following command which will build a single jar file for this project
-and its dependencies.
+1. Clone the repository.
+   ```shell
+   git clone https://github.com/SpoonLabs/diffmin.git
+   ```
 
-```sh
-mvn compile assembly:single
-```
+2. Build a single jar file for this project and its dependencies.
+   ```sh
+   mvn compile assembly:single
+   ```
 
 ### Usage
 
