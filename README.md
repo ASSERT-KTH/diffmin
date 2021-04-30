@@ -97,6 +97,5 @@ You can these steps to quickly submit a pull request.
 
 ## Authors
 
-* [Aman Sharma](https://github.com/algomaster99)
-* [Martin Monperrus](https://github.com/monperrus)
-* [Simon Larsén](https://github.com/slarse)
+The list of authors and contributors can be found
+[here](https://github.com/SpoonLabs/diffmin/graphs/contributors).
