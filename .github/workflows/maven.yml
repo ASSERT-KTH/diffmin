@@ -32,6 +32,8 @@ jobs:
         java-version: 11
     - name: Style check
       run: 'mvn spotless:check'
+    - name: Verify if test resources compile
+      run: ./scripts/verify-test-resource.sh
     - name: Run test phase
       run: mvn test
     - name: Upload coverage report to Codecov
