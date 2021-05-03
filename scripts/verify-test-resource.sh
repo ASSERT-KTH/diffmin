@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Set environment variable for GitHub action to recognise colours
+export TERM=xterm
+
 # Colours for stdout
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
