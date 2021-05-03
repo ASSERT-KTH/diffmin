@@ -209,7 +209,7 @@ public class App {
     }
 
     /**
-     * Runs the patch function and dumps the output in the terminal.
+     * Executes the {@link Main} class.
      *
      * @param args Arguments passed via command line
      */
@@ -219,13 +219,8 @@ public class App {
             System.exit(1);
         }
         try {
-            App app = new App();
-            Pair<Diff, CtModel> diffAndModel =
-                    App.computeDiff(new File(args[0]), new File(args[1]));
-            app.generatePatch(diffAndModel.getFirst());
-            app.applyPatch();
-            CtModel patchedCtModel = diffAndModel.getSecond();
-            System.out.println(app.displayModifiedModel(patchedCtModel));
+            Main main = new Main(new File(args[0]), new File(args[1]));
+            System.out.println(main.displayModel());
             System.exit(0);
         } catch (Exception e) {
             e.printStackTrace();
