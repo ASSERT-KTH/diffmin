@@ -1,3 +1,4 @@
+import java.util.LinkedList;
 import java.util.Queue;
 
 class TreeTraversal {
@@ -13,13 +14,13 @@ class TreeTraversal {
     }
 
     public void levelOrder(TreeNode root) {
-        Queue<TreeNode> q;
+        Queue<TreeNode> q = new LinkedList<>();
         q.add(root);
 
         while (!q.isEmpty()) {
             int size = q.size();
 
-            for (int i=0; i<n; ++i) {
+            for (int i=0; i<size; ++i) {
                 TreeNode p = q.peek();
                 q.poll();
 
