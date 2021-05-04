@@ -52,7 +52,7 @@ mvn test
 
 ### License
 
-Licensed under the MIT License. See the `[LICENSE.md](LICENSE.md)` file for more
+Licensed under the MIT License. See the [license](LICENSE) file for more
 details.
 
 ### Issues
