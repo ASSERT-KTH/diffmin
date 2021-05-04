@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+set -o nounset # don't allow use of undefined variables
+set -o pipefail # if any single command in a pipe chain exits non-zero, set the exit status to that
+
 # Set environment variable for GitHub action to recognise colours
 export TERM=xterm
 
