@@ -35,13 +35,35 @@ compilation_errors=0
 
 # Verify if the resources compiles
 compile() {
-  local file=$1
+  local file=$1 # path to program in /tmp or equal to actual path
+  local actual_path=$2 # actual path of the test resource
   if javac "$file" -d "$TEMP_DIR_COMPILED_RESOURCES"; then
-    echo -e "${file}:${GREEN} Compiled successfully!${NC}"
+    echo -e "${actual_path}:${GREEN} Compiled successfully!${NC}"
   else
-    echo -e "${RED}There were compilation errors in ${WHITE}${RED_BG}${file}${NC}"
+    echo -e "${RED}There were compilation errors in ${WHITE}${RED_BG}${actual_path}${NC}"
     status=1
     compilation_errors=$((compilation_errors+1))
+  fi
+}
+
+# Rename file according to the first public class inside
+get_and_rename_file() {
+  local file=$1
+  REGEX_PATTERN="(?<=public\sclass\s)[A-Z$_][\w$]*"
+
+  # -m 1: returns the first public class which is matched
+  # -P: use PCRE to interpret lookbehind
+  # -o: print only the matched part
+  classname=$(grep -m 1 -P -o "$REGEX_PATTERN" "$file")
+
+  if [ -z "$classname" ]
+    then
+      compile "$file" "$file"
+    else
+      local new_file_name="${classname}.java"
+      cp "$file" "$TEMP_DIR_COMPILED_RESOURCES/${new_file_name}"
+      local new_file_path="${TEMP_DIR_COMPILED_RESOURCES}/${new_file_name}"
+      compile "$new_file_path" "$file"
   fi
 }
 
@@ -50,7 +72,7 @@ shopt -s lastpipe
 
 # Find all Java files inside the test resources directory
 find $TEST_RESOURCES_PATH -type f -name "*.java" | while read -r file; do
-  compile "$file"
+  get_and_rename_file "$file"
   file_count=$((file_count+1))
 done
 
