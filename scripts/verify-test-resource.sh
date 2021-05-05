@@ -9,9 +9,7 @@ export TERM=xterm
 # Colours for stdout
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
-WHITE=$(tput setaf 7)
 NC=$(tput sgr0)
-RED_BG=$(tput setab 1)
 
 # Path to test resources
 TEST_RESOURCES_PATH="$(git rev-parse --show-toplevel)/src/test/resources"
@@ -24,32 +22,22 @@ if [[ $was_temp_created -ne 0 ]]
     printf "The directory could not be created. Exiting program with 1.\n"
     exit 1
 fi
-printf "Created %s for saving compiled files temporarily.\n" "$TEMP_DIR_COMPILED_RESOURCES"
-printf "It will be removed after the script has executed with any exit code.\n\n"
-
-# Delete the temporary directory as it served its purpose
-cleanup() {
-  printf "\nRemoving %s directory ...\n" "$TEMP_DIR_COMPILED_RESOURCES"
-  rm -r "$TEMP_DIR_COMPILED_RESOURCES"
-  printf "Done.\n"
-}
 
 # Make sure the temporary directory is deleted even if the script aborts
-trap cleanup EXIT
+trap 'rm -r $TEMP_DIR_COMPILED_RESOURCES' EXIT
 
 # Global variables which will be modified as the script runs
 status=0
 file_count=0
-compilation_errors=0
+compilation_errors=()
 
 # Verify if the resources compiles
 compile() {
   local file=$1 # path to program in /tmp or equal to actual path
   local actual_path=$2 # actual path of the test resource
   if ! javac "$file" -d "$TEMP_DIR_COMPILED_RESOURCES"; then
-    printf "%bThere were compilation errors in %b%b%b%b\n" "$RED" "$WHITE" "$RED_BG" "$actual_path" "$NC"
+    compilation_errors+=("$actual_path")
     status=1
-    compilation_errors=$((compilation_errors+1))
   fi
 }
 
@@ -87,7 +75,11 @@ if [[ $status -eq 0 ]]
   then
     printf "\n%bAll [%d/%d] files were compiled successfully!%b\n" "$GREEN" $file_count $file_count "$NC"
   else
-    printf "\n%bErrors in %d/%d files.%b\n" "$RED" $compilation_errors $file_count "$NC"
+    errors=${#compilation_errors[@]}
+    printf "\n%bErrors in %d/%d files.%b\n" "$RED" "$errors" $file_count "$NC"
+    for file in "${compilation_errors[@]}"; do
+      printf "%b%s%b\n" "$RED" "$file" "$NC"
+    done
 fi
 
 printf "Script exiting with code %d.\n" $status
