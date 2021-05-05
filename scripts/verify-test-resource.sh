@@ -72,7 +72,7 @@ get_and_rename_file() {
 shopt -s lastpipe
 
 # Find all Java files inside the test resources directory
-find $TEST_RESOURCES_PATH -type f -name "*.java" | while read -r file; do
+for file in $(find "$TEST_RESOURCES_PATH" -type f -name "*.java"); do
   get_and_rename_file "$file"
   file_count=$((file_count+1))
 done
