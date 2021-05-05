@@ -14,7 +14,7 @@ NC=$(tput sgr0)
 RED_BG=$(tput setab 1)
 
 # Path to test resources
-TEST_RESOURCES_PATH=src/test/resources
+TEST_RESOURCES_PATH="$(git rev-parse --show-toplevel)/src/test/resources"
 
 # Temporary directory for saving compiled classes
 TEMP_DIR_COMPILED_RESOURCES=$(mktemp -d)
