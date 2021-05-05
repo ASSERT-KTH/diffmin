@@ -24,7 +24,7 @@ echo -e "It will be removed after the script has executed with any exit code.\n"
 # Delete the temporary directory as it served its purpose
 cleanup() {
   echo -e "\nRemoving $TEMP_DIR_COMPILED_RESOURCES directory ..."
-  rm -rf "$TEMP_DIR_COMPILED_RESOURCES"
+  rm -r "$TEMP_DIR_COMPILED_RESOURCES"
   echo "Done."
 }
 
