@@ -18,6 +18,12 @@ TEST_RESOURCES_PATH="$(git rev-parse --show-toplevel)/src/test/resources"
 
 # Temporary directory for saving compiled classes
 TEMP_DIR_COMPILED_RESOURCES=$(mktemp -d)
+was_temp_created=$?
+if [[ $was_temp_created -ne 0 ]]
+  then
+    printf "The directory could not be created. Exiting program with 1.\n"
+    exit 1
+fi
 printf "Created %s for saving compiled files temporarily.\n" "$TEMP_DIR_COMPILED_RESOURCES"
 printf "It will be removed after the script has executed with any exit code.\n\n"
 
