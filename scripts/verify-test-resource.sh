@@ -18,14 +18,14 @@ TEST_RESOURCES_PATH=src/test/resources
 
 # Temporary directory for saving compiled classes
 TEMP_DIR_COMPILED_RESOURCES=$(mktemp -d)
-echo "Created $TEMP_DIR_COMPILED_RESOURCES for saving compiled files temporarily."
-echo -e "It will be removed after the script has executed with any exit code.\n"
+printf "Created %s for saving compiled files temporarily.\n" "$TEMP_DIR_COMPILED_RESOURCES"
+printf "It will be removed after the script has executed with any exit code.\n\n"
 
 # Delete the temporary directory as it served its purpose
 cleanup() {
-  echo -e "\nRemoving $TEMP_DIR_COMPILED_RESOURCES directory ..."
+  printf "\nRemoving %s directory ...\n" "$TEMP_DIR_COMPILED_RESOURCES"
   rm -r "$TEMP_DIR_COMPILED_RESOURCES"
-  echo "Done."
+  printf "Done.\n"
 }
 
 # Make sure the temporary directory is deleted even if the script aborts
@@ -40,10 +40,8 @@ compilation_errors=0
 compile() {
   local file=$1 # path to program in /tmp or equal to actual path
   local actual_path=$2 # actual path of the test resource
-  if javac "$file" -d "$TEMP_DIR_COMPILED_RESOURCES"; then
-    echo -e "${actual_path}:${GREEN} Compiled successfully!${NC}"
-  else
-    echo -e "${RED}There were compilation errors in ${WHITE}${RED_BG}${actual_path}${NC}"
+  if ! javac "$file" -d "$TEMP_DIR_COMPILED_RESOURCES"; then
+    printf "%bThere were compilation errors in %b%b%b%b\n" "$RED" "$WHITE" "$RED_BG" "$actual_path" "$NC"
     status=1
     compilation_errors=$((compilation_errors+1))
   fi
@@ -81,10 +79,10 @@ done
 
 if [[ $status -eq 0 ]]
   then
-    echo -e "\n${GREEN}All [${file_count}/${file_count}] files were compiled successfully!${NC}"
+    printf "\n%bAll [%d/%d] files were compiled successfully!%b\n" "$GREEN" $file_count $file_count "$NC"
   else
-    echo -e "\n${RED}Errors in ${compilation_errors}/${file_count} files.${NC}"
+    printf "\n%bErrors in %d/%d files.%b\n" "$RED" $compilation_errors $file_count "$NC"
 fi
 
-echo "Script exiting with code $status."
+printf "Script exiting with code %d.\n" $status
 exit $status
