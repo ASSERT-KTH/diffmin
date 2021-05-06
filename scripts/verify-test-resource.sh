@@ -2,6 +2,7 @@
 
 set -o nounset # don't allow use of undefined variables
 set -o pipefail # if any single command in a pipe chain exits non-zero, set the exit status to that
+set -o errexit # if any single command exits non-zero, exit the entire script with that status
 
 # Set environment variable for GitHub action to recognise colours
 export TERM=xterm
@@ -33,32 +34,16 @@ compilation_errors=()
 
 # Verify if the resources compiles
 compile() {
-  local file=$1 # path to program in /tmp or equal to actual path
-  local actual_path=$2 # actual path of the test resource
-  if ! javac "$file" -d "$TEMP_DIR_COMPILED_RESOURCES"; then
+  # actual path of the test resource
+  local actual_path=$1
+  # Name of the class after PREV or NEW prefix
+  local syntactical_name
+  syntactical_name="$(basename "$actual_path" | cut -d '_' -f 2)"
+  local copied_path="$TEMP_DIR_COMPILED_RESOURCES/$syntactical_name"
+  cp "$actual_path" "$copied_path"
+  if ! javac "$copied_path" -d "$TEMP_DIR_COMPILED_RESOURCES"; then
     compilation_errors+=("$actual_path")
     status=1
-  fi
-}
-
-# Rename file according to the first public class inside
-get_and_rename_file() {
-  local file=$1
-  REGEX_PATTERN="(?<=public\sclass\s)[A-Z$_][\w$]*"
-
-  # -m 1: returns the first public class which is matched
-  # -P: use PCRE to interpret lookbehind
-  # -o: print only the matched part
-  classname=$(grep -m 1 -P -o "$REGEX_PATTERN" "$file")
-
-  if [ -z "$classname" ]
-    then
-      compile "$file" "$file"
-    else
-      local new_file_name="${classname}.java"
-      cp "$file" "$TEMP_DIR_COMPILED_RESOURCES/${new_file_name}"
-      local new_file_path="${TEMP_DIR_COMPILED_RESOURCES}/${new_file_name}"
-      compile "$new_file_path" "$file"
   fi
 }
 
@@ -66,8 +51,8 @@ get_and_rename_file() {
 shopt -s lastpipe
 
 # Find all Java files inside the test resources directory
-for file in $(find "$TEST_RESOURCES_PATH" -type f -name "*.java"); do
-  get_and_rename_file "$file"
+find "$TEST_RESOURCES_PATH" -type f -name "*.java" | while read -r file; do
+  compile "$file"
   file_count=$((file_count+1))
 done
 
