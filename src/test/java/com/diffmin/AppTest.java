@@ -35,9 +35,9 @@ public class AppTest {
 
     public static final Path DELETE_UPDATE_PATCHES = RESOURCES_BASE_DIR.resolve("delete+update");
 
-    private static final String prevPrefix = "PREV";
+    private static final String PREV_PREFIX = "PREV";
 
-    private static final String newPrefix = "NEW";
+    private static final String NEW_PREFIX = "NEW";
 
     private static Stream<? extends Arguments> getArgumentSourceStream(
             File testDir, Function<File, TestResources> sourceGetter) {
@@ -81,13 +81,16 @@ public class AppTest {
             List<Path> pathList = paths.collect(Collectors.toList());
             Map<String, Path> testPathMap = new HashMap<>();
             for (Path testPath : pathList) {
-                if (testPath.getFileName().toString().startsWith(AppTest.prevPrefix)) {
-                    testPathMap.put(AppTest.prevPrefix, testPath);
-                } else if (testPath.getFileName().toString().startsWith(AppTest.newPrefix)) {
-                    testPathMap.put(AppTest.newPrefix, testPath);
+                if (testPath.getFileName().toString().startsWith(AppTest.PREV_PREFIX)) {
+                    testPathMap.put(AppTest.PREV_PREFIX, testPath);
+                } else if (testPath.getFileName().toString().startsWith(AppTest.NEW_PREFIX)) {
+                    testPathMap.put(AppTest.NEW_PREFIX, testPath);
                 }
             }
-            return new TestResources(testPathMap.get("PREV"), testPathMap.get("NEW"), parent);
+            return new TestResources(
+                    testPathMap.get(AppTest.PREV_PREFIX),
+                    testPathMap.get(AppTest.NEW_PREFIX),
+                    parent);
         }
 
         @Override
