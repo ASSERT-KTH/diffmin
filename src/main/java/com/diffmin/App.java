@@ -21,10 +21,7 @@ import spoon.compiler.Environment;
 import spoon.compiler.SpoonResource;
 import spoon.compiler.SpoonResourceHelper;
 import spoon.reflect.CtModel;
-import spoon.reflect.code.CtExpression;
-import spoon.reflect.code.CtInvocation;
-import spoon.reflect.code.CtStatement;
-import spoon.reflect.code.CtStatementList;
+import spoon.reflect.code.*;
 import spoon.reflect.declaration.*;
 import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 import spoon.reflect.visitor.PrettyPrinter;
@@ -108,7 +105,7 @@ public class App {
             case TYPE_PARAMETER:
                 return ((CtClass<?>) element.getParent()).getFormalCtTypeParameters();
             case PARAMETER:
-                return ((CtConstructor<?>) element.getParent()).getParameters();
+                return ((CtExecutable<?>) element.getParent()).getParameters();
             default:
                 throw new UnsupportedOperationException(
                         "Unsupported role: " + element.getRoleInParent());
@@ -198,27 +195,12 @@ public class App {
                 ((CtClass<?>) inWhichElement).addTypeMemberAt(where, (CtTypeMember) toBeInserted);
                 break;
             case TYPE_PARAMETER:
-                // FIXME Temporary workaround until https://github.com/INRIA/spoon/issues/3894 is
-                // fixed.
-                List<CtTypeParameter> typeParameters =
-                        ((CtClass<?>) inWhichElement).getFormalCtTypeParameters();
-                if (typeParameters.isEmpty()) {
-                    ((CtClass<?>) inWhichElement)
-                            .addFormalCtTypeParameter((CtTypeParameter) toBeInserted);
-                } else {
-                    typeParameters.add(where, (CtTypeParameter) toBeInserted);
-                }
+                ((CtClass<?>) inWhichElement)
+                        .addFormalCtTypeParameterAt(where, (CtTypeParameter) toBeInserted);
                 break;
             case PARAMETER:
-                // FIXME Temporary workaround until https://github.com/INRIA/spoon/issues/3895 is
-                // fixed.
-                List<CtParameter<?>> parameters =
-                        ((CtConstructor<?>) inWhichElement).getParameters();
-                if (parameters.isEmpty()) {
-                    ((CtConstructor<?>) inWhichElement).addParameter((CtParameter<?>) toBeInserted);
-                } else {
-                    parameters.add(where, (CtParameter<?>) toBeInserted);
-                }
+                ((CtExecutable<?>) inWhichElement)
+                        .addParameterAt(where, (CtParameter<?>) toBeInserted);
                 break;
             default:
                 throw new UnsupportedOperationException(
