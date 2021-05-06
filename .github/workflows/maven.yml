@@ -19,8 +19,8 @@ jobs:
       run: |
         mvn compile assembly:single
         java -jar target/diffmin-1.0-SNAPSHOT-jar-with-dependencies.jar \
-          src/test/resources/delete/literal/prev.java \
-          src/test/resources/delete/literal/new.java
+          src/test/resources/delete/literal/PREV_DeleteLiteral.java \
+          src/test/resources/delete/literal/NEW_DeleteLiteral.java
 
   test:
     runs-on: ubuntu-latest
@@ -32,6 +32,8 @@ jobs:
         java-version: 11
     - name: Style check
       run: 'mvn spotless:check'
+    - name: Verify if test resources compile
+      run: ./scripts/verify-test-resource.sh
     - name: Run test phase
       run: mvn test
     - name: Upload coverage report to Codecov
