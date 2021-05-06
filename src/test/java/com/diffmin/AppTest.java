@@ -8,9 +8,9 @@ import gumtree.spoon.diff.Diff;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -34,6 +34,10 @@ public class AppTest {
     public static final Path DELETE_INSERT_PATCHES = RESOURCES_BASE_DIR.resolve("delete+insert");
 
     public static final Path DELETE_UPDATE_PATCHES = RESOURCES_BASE_DIR.resolve("delete+update");
+
+    private static final String prevPrefix = "PREV";
+
+    private static final String newPrefix = "NEW";
 
     private static Stream<? extends Arguments> getArgumentSourceStream(
             File testDir, Function<File, TestResources> sourceGetter) {
@@ -73,7 +77,17 @@ public class AppTest {
         public static TestResources fromTestDirectory(File testDir) {
             Path path = testDir.toPath();
             String parent = testDir.getName();
-            return new TestResources(path.resolve("prev.java"), path.resolve("new.java"), parent);
+            Stream<Path> paths = Arrays.stream(path.toFile().listFiles()).map(File::toPath);
+            List<Path> pathList = paths.collect(Collectors.toList());
+            Map<String, Path> testPathMap = new HashMap<>();
+            for (Path testPath : pathList) {
+                if (testPath.getFileName().toString().startsWith(AppTest.prevPrefix)) {
+                    testPathMap.put(AppTest.prevPrefix, testPath);
+                } else if (testPath.getFileName().toString().startsWith(AppTest.newPrefix)) {
+                    testPathMap.put(AppTest.newPrefix, testPath);
+                }
+            }
+            return new TestResources(testPathMap.get("PREV"), testPathMap.get("NEW"), parent);
         }
 
         @Override
