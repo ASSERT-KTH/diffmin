@@ -22,6 +22,15 @@ jobs:
           src/test/resources/delete/literal/PREV_DeleteLiteral.java \
           src/test/resources/delete/literal/NEW_DeleteLiteral.java
 
+  sorald-buildbreaker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Sorald Buildbreaker
+        uses: SpoonLabs/sorald-buildbreaker@45bafb6
+        with:
+          source: 'src/main/java'
+
   test:
     runs-on: ubuntu-latest
     steps:
