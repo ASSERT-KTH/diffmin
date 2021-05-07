@@ -30,20 +30,14 @@ class Main {
      *
      * @param args Arguments passed via command line
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
         if (args.length != 2) {
             System.out.println("Usage: DiffSpoon <file_1>  <file_2>");
             System.exit(1);
         }
-        try {
-            App app = new App();
-            CtModel patchedCtModel =
-                    Main.patchAndGenerateModel(new File(args[0]), new File(args[1]));
-            System.out.println(app.displayModifiedModel(patchedCtModel));
-            System.exit(0);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(-1);
-        }
+        CtModel patchedCtModel =
+                Main.patchAndGenerateModel(new File(args[0]), new File(args[1]));
+        System.out.println(App.displayModifiedModel(patchedCtModel));
+        System.exit(0);
     }
 }

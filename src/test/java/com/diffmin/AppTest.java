@@ -175,7 +175,6 @@ public class AppTest {
     private static void runTests(TestResources sources) throws Exception {
         File f1 = sources.prevPath.toFile();
         File f2 = sources.newPath.toFile();
-        App app = new App();
         CtModel patchedCtModel = Main.patchAndGenerateModel(f1, f2);
         CtModel expectedModel = App.buildModel(sources.newPath.toFile());
         Optional<CtType<?>> firstType = expectedModel.getAllTypes().stream().findFirst();
@@ -190,7 +189,7 @@ public class AppTest {
                             .getFactory()
                             .CompilationUnit()
                             .getOrCreate(retrievedFirstType);
-            String patchedProgram = app.displayModifiedModel(patchedCtModel);
+            String patchedProgram = App.displayModifiedModel(patchedCtModel);
             assertEquals(cu.prettyprint(), patchedProgram, "Prev file was not patched correctly");
         }
     }

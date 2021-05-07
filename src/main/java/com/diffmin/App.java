@@ -118,7 +118,7 @@ public class App {
      * @param model model to be pretty printed
      * @return patched program
      */
-    public String displayModifiedModel(CtModel model) {
+    public static String displayModifiedModel(CtModel model) {
         CtType<?> firstType = model.getAllTypes().stream().findFirst().get();
         CtCompilationUnit cu = firstType.getFactory().CompilationUnit().getOrCreate(firstType);
         // Note: Must explicitly create our configured pretty printer, as spoon-9.0.0 has that
