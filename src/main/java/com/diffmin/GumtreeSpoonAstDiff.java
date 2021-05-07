@@ -16,6 +16,12 @@ import spoon.reflect.reference.CtReference;
  * taken from.
  */
 public class GumtreeSpoonAstDiff {
+
+    /** Override constructor to prevent instantiating of this class (RSPEC-1118). */
+    private GumtreeSpoonAstDiff() {
+        throw new IllegalStateException("Utility classes should not be instantiated");
+    }
+
     /**
      * This method is taken from gumtree-spoon-ast-diff and identifies Spoon nodes that should not
      * be mapped into the GumTree that's build by SpoonGumTreeBuilder.

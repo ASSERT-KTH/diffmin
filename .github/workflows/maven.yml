@@ -13,6 +13,10 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 11
+    - name: Run Sorald Buildbreaker
+      uses: SpoonLabs/sorald-buildbreaker@45bafb6db29a466080328864cecf9b20d9ace3de
+      with:
+        source: 'src/main/java'
     - name: Build project
       run: mvn compile
     - name: Build jar with dependencies
