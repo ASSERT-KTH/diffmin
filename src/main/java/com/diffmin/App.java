@@ -26,7 +26,7 @@ import spoon.reflect.declaration.*;
 import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 import spoon.reflect.visitor.PrettyPrinter;
 
-/** Entry point of the project. Computes the edit script and uses it to patch the. */
+/** Computes the edit script and uses it to patch the previous version. */
 public class App {
     private final List<CtElement> deletePatches = new ArrayList<>();
 
@@ -205,26 +205,6 @@ public class App {
             default:
                 throw new UnsupportedOperationException(
                         "Unhandled role: " + toBeInserted.getRoleInParent());
-        }
-    }
-
-    /**
-     * Executes the {@link Main} class.
-     *
-     * @param args Arguments passed via command line
-     */
-    public static void main(String[] args) {
-        if (args.length != 2) {
-            System.out.println("Usage: DiffSpoon <file_1>  <file_2>");
-            System.exit(1);
-        }
-        try {
-            Main main = new Main(new File(args[0]), new File(args[1]));
-            System.out.println(main.displayModel());
-            System.exit(0);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(-1);
         }
     }
 }

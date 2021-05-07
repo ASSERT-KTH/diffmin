@@ -8,32 +8,42 @@ import spoon.reflect.CtModel;
 
 /** Main execution of generating and applying patch */
 class Main {
-    private final App app;
-
-    private final CtModel patchedCtModel;
 
     /**
-     * Runs the patch function and generates a patched model.
+     * Generates patches and apply them to the previous model.
      *
      * @param prevFile Previous version of the file
      * @param newFile Modified version of the file
-     * @throws FileNotFoundException Exception is raised when path of the file is invalid
+     * @throws FileNotFoundException Exception is raised when path of either file is invalid
      */
-    Main(File prevFile, File newFile) throws FileNotFoundException {
-        app = new App();
+    public static CtModel patchAndGenerateModel(File prevFile, File newFile)
+            throws FileNotFoundException {
+        App app = new App();
         Pair<Diff, CtModel> diffAndModel = App.computeDiff(prevFile, newFile);
         app.generatePatch(diffAndModel.getFirst());
         app.applyPatch();
-        patchedCtModel = diffAndModel.getSecond();
+        return diffAndModel.getSecond();
     }
 
-    /** Returns the patched model. */
-    public CtModel getModel() {
-        return patchedCtModel;
-    }
-
-    /** Pretty-prints the patched model. */
-    public String displayModel() {
-        return app.displayModifiedModel(patchedCtModel);
+    /**
+     * Runs the patch function and dumps the output in the terminal.
+     *
+     * @param args Arguments passed via command line
+     */
+    public static void main(String[] args) {
+        if (args.length != 2) {
+            System.out.println("Usage: DiffSpoon <file_1>  <file_2>");
+            System.exit(1);
+        }
+        try {
+            App app = new App();
+            CtModel patchedCtModel =
+                    Main.patchAndGenerateModel(new File(args[0]), new File(args[1]));
+            System.out.println(app.displayModifiedModel(patchedCtModel));
+            System.exit(0);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(-1);
+        }
     }
 }
