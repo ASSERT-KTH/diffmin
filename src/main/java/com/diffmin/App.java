@@ -23,6 +23,7 @@ import spoon.compiler.SpoonResourceHelper;
 import spoon.reflect.CtModel;
 import spoon.reflect.code.*;
 import spoon.reflect.declaration.*;
+import spoon.reflect.path.CtRole;
 import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 import spoon.reflect.visitor.PrettyPrinter;
 
@@ -148,14 +149,22 @@ public class App {
             } else if (operation.getAction() instanceof Insert) {
                 CtElement insertedNode = operation.getSrcNode();
                 CtElement insertedNodeParent = insertedNode.getParent();
-                List<? extends CtElement> newCollectionList =
-                        getCollectionElementList(insertedNode);
+                List<? extends CtElement> newCollectionList;
+                int srcNodeIndex;
+                switch (insertedNode.getRoleInParent()) {
+                    case DEFAULT_EXPRESSION:
+                        srcNodeIndex = -1;
+                        break;
+                    default:
+                        newCollectionList = getCollectionElementList(insertedNode);
+                        srcNodeIndex =
+                                IntStream.range(0, newCollectionList.size())
+                                        .filter((i) -> newCollectionList.get(i) == insertedNode)
+                                        .findFirst()
+                                        .getAsInt();
+                        break;
+                }
                 CtElement parentElementInPrevModel = mapping.get(insertedNodeParent);
-                int srcNodeIndex =
-                        IntStream.range(0, newCollectionList.size())
-                                .filter((i) -> newCollectionList.get(i) == insertedNode)
-                                .findFirst()
-                                .getAsInt();
                 insertPatches.add(
                         new ImmutableTriple<>(
                                 srcNodeIndex, insertedNode, parentElementInPrevModel));
@@ -201,6 +210,9 @@ public class App {
             case PARAMETER:
                 ((CtExecutable<?>) inWhichElement)
                         .addParameterAt(where, (CtParameter<?>) toBeInserted);
+                break;
+            case DEFAULT_EXPRESSION:
+                inWhichElement.setValueByRole(CtRole.DEFAULT_EXPRESSION, toBeInserted);
                 break;
             default:
                 throw new UnsupportedOperationException(
