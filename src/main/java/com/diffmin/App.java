@@ -129,7 +129,7 @@ public class App {
     }
 
     /** Computes the index at which the `insertedNode` has to be inserted. */
-    public int getInsertIndex(CtElement insertedNode) {
+    private int getInsertIndex(CtElement insertedNode) {
         CtElement insertedNodeParent = insertedNode.getParent();
         if (insertedNodeParent.getValueByRole(insertedNode.getRoleInParent()) instanceof List) {
             List<? extends CtElement> newCollectionList = getCollectionElementList(insertedNode);
