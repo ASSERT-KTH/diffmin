@@ -23,9 +23,9 @@ class MainTest {
         System.setSecurityManager(null);
     }
 
+    /** Custom exception to be thrown whenever {@link System#exit(int)} is invoked. */
+    @SuppressWarnings("serial")
     private static class ExitException extends SecurityException {
-        private static final long serialVersionUID = 420024L;
-
         public final int status;
 
         public ExitException(int status) {
