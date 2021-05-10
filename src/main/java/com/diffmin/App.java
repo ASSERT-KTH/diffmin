@@ -26,7 +26,7 @@ import spoon.reflect.declaration.*;
 import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 import spoon.reflect.visitor.PrettyPrinter;
 
-/** Entry point of the project. Computes the edit script and uses it to patch the. */
+/** Computes the edit script and uses it to patch the previous version. */
 public class App {
     private final List<CtElement> deletePatches = new ArrayList<>();
 
@@ -118,7 +118,7 @@ public class App {
      * @param model model to be pretty printed
      * @return patched program
      */
-    public String displayModifiedModel(CtModel model) {
+    public static String displayModifiedModel(CtModel model) {
         CtType<?> firstType = model.getAllTypes().stream().findFirst().get();
         CtCompilationUnit cu = firstType.getFactory().CompilationUnit().getOrCreate(firstType);
         // Note: Must explicitly create our configured pretty printer, as spoon-9.0.0 has that
@@ -205,31 +205,6 @@ public class App {
             default:
                 throw new UnsupportedOperationException(
                         "Unhandled role: " + toBeInserted.getRoleInParent());
-        }
-    }
-
-    /**
-     * Runs the patch function and dumps the output in the terminal.
-     *
-     * @param args Arguments passed via command line
-     */
-    public static void main(String[] args) {
-        if (args.length != 2) {
-            System.out.println("Usage: DiffSpoon <file_1>  <file_2>");
-            System.exit(1);
-        }
-        try {
-            App app = new App();
-            Pair<Diff, CtModel> diffAndModel =
-                    App.computeDiff(new File(args[0]), new File(args[1]));
-            app.generatePatch(diffAndModel.getFirst());
-            app.applyPatch();
-            CtModel patchedCtModel = diffAndModel.getSecond();
-            System.out.println(app.displayModifiedModel(patchedCtModel));
-            System.exit(0);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(-1);
         }
     }
 }

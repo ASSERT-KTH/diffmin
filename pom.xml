@@ -144,7 +144,7 @@
           <configuration>
             <archive>
               <manifest>
-                <mainClass>com.diffmin.App</mainClass>
+                <mainClass>com.diffmin.Main</mainClass>
               </manifest>
               <manifestEntries>
                 <Multi-Release>true</Multi-Release>
