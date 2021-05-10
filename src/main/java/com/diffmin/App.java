@@ -128,6 +128,19 @@ public class App {
         return printer.prettyprint(cu);
     }
 
+    /** Computes the index at which the `insertedNode` has to be inserted. */
+    private int getInsertIndex(CtElement insertedNode) {
+        CtElement insertedNodeParent = insertedNode.getParent();
+        if (insertedNodeParent.getValueByRole(insertedNode.getRoleInParent()) instanceof List) {
+            List<? extends CtElement> newCollectionList = getCollectionElementList(insertedNode);
+            return IntStream.range(0, newCollectionList.size())
+                    .filter((i) -> newCollectionList.get(i) == insertedNode)
+                    .findFirst()
+                    .getAsInt();
+        }
+        return -1;
+    }
+
     /**
      * Generate list of patches for each individual operation type - {@link OperationKind}.
      *
@@ -148,14 +161,8 @@ public class App {
             } else if (operation.getAction() instanceof Insert) {
                 CtElement insertedNode = operation.getSrcNode();
                 CtElement insertedNodeParent = insertedNode.getParent();
-                List<? extends CtElement> newCollectionList =
-                        getCollectionElementList(insertedNode);
+                int srcNodeIndex = getInsertIndex(insertedNode);
                 CtElement parentElementInPrevModel = mapping.get(insertedNodeParent);
-                int srcNodeIndex =
-                        IntStream.range(0, newCollectionList.size())
-                                .filter((i) -> newCollectionList.get(i) == insertedNode)
-                                .findFirst()
-                                .getAsInt();
                 insertPatches.add(
                         new ImmutableTriple<>(
                                 srcNodeIndex, insertedNode, parentElementInPrevModel));
@@ -203,8 +210,8 @@ public class App {
                         .addParameterAt(where, (CtParameter<?>) toBeInserted);
                 break;
             default:
-                throw new UnsupportedOperationException(
-                        "Unhandled role: " + toBeInserted.getRoleInParent());
+                inWhichElement.setValueByRole(toBeInserted.getRoleInParent(), toBeInserted);
+                break;
         }
     }
 }
