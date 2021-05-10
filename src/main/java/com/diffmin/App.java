@@ -23,7 +23,6 @@ import spoon.compiler.SpoonResourceHelper;
 import spoon.reflect.CtModel;
 import spoon.reflect.code.*;
 import spoon.reflect.declaration.*;
-import spoon.reflect.path.CtRole;
 import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 import spoon.reflect.visitor.PrettyPrinter;
 
@@ -129,6 +128,19 @@ public class App {
         return printer.prettyprint(cu);
     }
 
+    /** Computes the index at which the `insertedNode` has to be inserted. */
+    public int getInsertIndex(CtElement insertedNode) {
+        CtElement insertedNodeParent = insertedNode.getParent();
+        if (insertedNodeParent.getValueByRole(insertedNode.getRoleInParent()) instanceof List) {
+            List<? extends CtElement> newCollectionList = getCollectionElementList(insertedNode);
+            return IntStream.range(0, newCollectionList.size())
+                    .filter((i) -> newCollectionList.get(i) == insertedNode)
+                    .findFirst()
+                    .getAsInt();
+        }
+        return -1;
+    }
+
     /**
      * Generate list of patches for each individual operation type - {@link OperationKind}.
      *
@@ -149,21 +161,7 @@ public class App {
             } else if (operation.getAction() instanceof Insert) {
                 CtElement insertedNode = operation.getSrcNode();
                 CtElement insertedNodeParent = insertedNode.getParent();
-                List<? extends CtElement> newCollectionList;
-                int srcNodeIndex;
-                switch (insertedNode.getRoleInParent()) {
-                    case DEFAULT_EXPRESSION:
-                        srcNodeIndex = -1;
-                        break;
-                    default:
-                        newCollectionList = getCollectionElementList(insertedNode);
-                        srcNodeIndex =
-                                IntStream.range(0, newCollectionList.size())
-                                        .filter((i) -> newCollectionList.get(i) == insertedNode)
-                                        .findFirst()
-                                        .getAsInt();
-                        break;
-                }
+                int srcNodeIndex = getInsertIndex(insertedNode);
                 CtElement parentElementInPrevModel = mapping.get(insertedNodeParent);
                 insertPatches.add(
                         new ImmutableTriple<>(
@@ -214,9 +212,6 @@ public class App {
             case DEFAULT_EXPRESSION:
                 inWhichElement.setValueByRole(CtRole.DEFAULT_EXPRESSION, toBeInserted);
                 break;
-            default:
-                throw new UnsupportedOperationException(
-                        "Unhandled role: " + toBeInserted.getRoleInParent());
         }
     }
 
