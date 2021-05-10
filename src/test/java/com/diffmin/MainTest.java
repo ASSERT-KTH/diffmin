@@ -56,8 +56,8 @@ class MainTest {
     @Test
     @DisplayName("should exit with code 1 when incorrect number of parameters are supplied")
     void should_exit_1_if_wrong_number_of_parameters_are_supplied() {
-        ExitException exec = assertThrows(ExitException.class, () -> Main.main(new String[] {}));
-        assertEquals(1, exec.status);
+        ExitException exit = assertThrows(ExitException.class, () -> Main.main(new String[] {}));
+        assertEquals(1, exit.status);
     }
 
     @Test
@@ -75,9 +75,9 @@ class MainTest {
         String prevFile = "src/test/resources/delete/literal/PREV_DeleteLiteral.java";
         String newFile = "src/test/resources/delete/literal/NEW_DeleteLiteral.java";
 
-        ExitException exec =
+        ExitException exit =
                 assertThrows(
                         ExitException.class, () -> Main.main(new String[] {prevFile, newFile}));
-        assertEquals(0, exec.status);
+        assertEquals(0, exit.status);
     }
 }
