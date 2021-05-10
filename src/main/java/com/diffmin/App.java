@@ -23,6 +23,7 @@ import spoon.compiler.SpoonResourceHelper;
 import spoon.reflect.CtModel;
 import spoon.reflect.code.*;
 import spoon.reflect.declaration.*;
+import spoon.reflect.reference.CtTypeReference;
 import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 import spoon.reflect.visitor.PrettyPrinter;
 
@@ -184,6 +185,7 @@ public class App {
     }
 
     /** Apply the insert patch. */
+    @SuppressWarnings("unchecked")
     private static void applyInsertion(ImmutableTriple<Integer, CtElement, CtElement> insert) {
         int where = insert.left;
         CtElement toBeInserted = insert.middle;
@@ -208,6 +210,13 @@ public class App {
             case PARAMETER:
                 ((CtExecutable<?>) inWhichElement)
                         .addParameterAt(where, (CtParameter<?>) toBeInserted);
+                break;
+            case THROWN:
+                ((CtExecutable<Throwable>) inWhichElement)
+                        .addThrownType((CtTypeReference<Throwable>) toBeInserted);
+                //                ((CtExecutable<?>)
+                // inWhichElement).setThrownTypes(((CtExecutable<?>)
+                // toBeInserted.getParent()).getThrownTypes());
                 break;
             default:
                 inWhichElement.setValueByRole(toBeInserted.getRoleInParent(), toBeInserted);
