@@ -17,8 +17,9 @@ public class MainTest {
         System.setSecurityManager(new DoNotExitJVM());
     }
 
-    @SuppressWarnings("serial")
     private static class ExitException extends SecurityException {
+        private static final long serialVersionUID = 420024L;
+
         public final int status;
 
         public ExitException(int status) {
