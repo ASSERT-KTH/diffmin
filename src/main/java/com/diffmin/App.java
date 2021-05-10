@@ -209,8 +209,8 @@ public class App {
                 ((CtExecutable<?>) inWhichElement)
                         .addParameterAt(where, (CtParameter<?>) toBeInserted);
                 break;
-            case DEFAULT_EXPRESSION:
-                inWhichElement.setValueByRole(CtRole.DEFAULT_EXPRESSION, toBeInserted);
+            default:
+                inWhichElement.setValueByRole(toBeInserted.getRoleInParent(), toBeInserted);
                 break;
         }
     }
