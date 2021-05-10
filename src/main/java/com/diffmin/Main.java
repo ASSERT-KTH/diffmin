@@ -35,8 +35,7 @@ class Main {
             System.out.println("Usage: DiffSpoon <file_1>  <file_2>");
             System.exit(1);
         }
-        CtModel patchedCtModel =
-                Main.patchAndGenerateModel(new File(args[0]), new File(args[1]));
+        CtModel patchedCtModel = Main.patchAndGenerateModel(new File(args[0]), new File(args[1]));
         System.out.println(App.displayModifiedModel(patchedCtModel));
         System.exit(0);
     }
