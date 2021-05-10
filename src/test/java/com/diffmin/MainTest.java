@@ -4,12 +4,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.FileNotFoundException;
 import java.security.Permission;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /** Unit test to verify Main method's functioning */
 public class MainTest {
-    MainTest() {
+    /** Overrides the default security manager before starting execution of test cases. */
+    @BeforeAll
+    static void beforeAll() {
         System.setSecurityManager(new DoNotExitJVM());
     }
 
@@ -75,5 +79,11 @@ public class MainTest {
         } catch (FileNotFoundException e) {
             fail("File path could not be found");
         }
+    }
+
+    /** Restores the default security manager after executing all test cases. */
+    @AfterAll
+    static void afterAll() {
+        System.setSecurityManager(null);
     }
 }
