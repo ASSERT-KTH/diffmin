@@ -65,6 +65,14 @@ public class AppTest {
             this.parent = parent;
         }
 
+        /** Custom exception to be thrown when file is not found at runtime. */
+        @SuppressWarnings("serial")
+        private static class FileNotFoundAtRuntimeException extends RuntimeException {
+            FileNotFoundAtRuntimeException(String message) {
+                super(message);
+            }
+        }
+
         /**
          * Resolve files inside a directory.
          *
@@ -91,7 +99,11 @@ public class AppTest {
                     .findFirst()
                     .map(File::toPath)
                     .orElseThrow(
-                            () -> new IllegalArgumentException("Filename has an invalid prefix"));
+                            () ->
+                                    new FileNotFoundAtRuntimeException(
+                                            String.format(
+                                                    "Expected file with prefix '%s' in directory '%s'",
+                                                    prefix, dir)));
         }
 
         @Override
