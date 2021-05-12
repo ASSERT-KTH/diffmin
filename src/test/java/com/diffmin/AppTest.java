@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -73,22 +72,26 @@ public class AppTest {
          * @return instance of {@link TestResources}
          */
         public static TestResources fromTestDirectory(File testDir) {
-            Path path = testDir.toPath();
             String parent = testDir.getName();
-            Stream<Path> paths = Arrays.stream(path.toFile().listFiles()).map(File::toPath);
-            List<Path> pathList = paths.collect(Collectors.toList());
-            Map<String, Path> testPathMap = new HashMap<>();
-            for (Path testPath : pathList) {
-                if (testPath.getFileName().toString().startsWith(AppTest.PREV_PREFIX)) {
-                    testPathMap.put(AppTest.PREV_PREFIX, testPath);
-                } else if (testPath.getFileName().toString().startsWith(AppTest.NEW_PREFIX)) {
-                    testPathMap.put(AppTest.NEW_PREFIX, testPath);
-                }
-            }
-            return new TestResources(
-                    testPathMap.get(AppTest.PREV_PREFIX),
-                    testPathMap.get(AppTest.NEW_PREFIX),
-                    parent);
+            Path prevPath = getFilepathByPrefix(testDir, PREV_PREFIX);
+            Path newPath = getFilepathByPrefix(testDir, NEW_PREFIX);
+            return new TestResources(prevPath, newPath, parent);
+        }
+
+        /**
+         * Returns test resource with the matching prefix.
+         *
+         * @param dir Directory where the test resources are located
+         * @param prefix Prefix of the test resource
+         * @return {@link Path} to the test resource
+         */
+        private static Path getFilepathByPrefix(File dir, String prefix) {
+            return Arrays.stream(dir.listFiles())
+                    .filter(f -> f.getName().startsWith(prefix))
+                    .findFirst()
+                    .map(File::toPath)
+                    .orElseThrow(
+                            () -> new IllegalArgumentException("Filename has an invalid prefix"));
         }
 
         @Override
