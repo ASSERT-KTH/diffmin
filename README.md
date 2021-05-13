@@ -34,7 +34,7 @@ This package is not published yet but one can build the project from source.
 
 ### Usage
 
-Once the jar is built, the main method can be invovked using just one command.
+Once the jar is built, the main method can be invoked using just one command.
 
 ```sh
 java -jar target/diffmin-1.0-SNAPSHOT-jar-with-dependencies.jar <prev.java> <new.java>
@@ -64,7 +64,7 @@ as much as possible.
 
 ### Pull requests
 
-Diffmin is currently in its rudimentary stages so we are not expecting a pull
+Diffmin is currently in its rudimentary stages, so we are not expecting a pull
 request from outside contributors as there are not many features to work on as
 of now. We will update the instructions when we feel that we have enough issues
 to tackle. In that case, we would encourage contributions from anyone.
@@ -72,7 +72,7 @@ to tackle. In that case, we would encourage contributions from anyone.
 Internally, we do follow some guidelines before submitting a pull request.
 
 1. PR title aptly describes the changes proposed.
-2. PR is coupled with a description so it makes the process of reviewing easier.
+2. PR is coupled with a description, so it makes the process of reviewing easier.
 3. PR addresses a single thing, e.g. a single feature or a bug.
 
 ## Authors
