@@ -16,6 +16,12 @@ import spoon.reflect.visitor.PrettyPrinter;
 
 /** Computes the edit script and uses it to patch the previous version. */
 public class App {
+
+    /** Override constructor to prevent instantiating of this class (RSPEC-1118). */
+    private App() {
+        throw new IllegalStateException("Utility classes should not be instantiated");
+    }
+
     /**
      * Returns the root package of the file.
      *

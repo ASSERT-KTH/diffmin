@@ -13,9 +13,9 @@ import spoon.reflect.reference.CtTypeReference;
 
 /** Class for applying patches. */
 public class Application {
-    private Set<CtElement> deletePatches;
-    private Set<Pair<CtElement, CtElement>> updatePatches;
-    private Set<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches;
+    private final Set<CtElement> deletePatches;
+    private final Set<Pair<CtElement, CtElement>> updatePatches;
+    private final Set<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches;
 
     /** Instantiates the class with the patches. */
     public Application(

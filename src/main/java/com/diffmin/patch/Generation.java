@@ -37,7 +37,6 @@ public class Generation {
                 updatePatches.add(update(operation.getSrcNode(), operation.getDstNode()));
             } else if (operation.getAction() instanceof Insert) {
                 insertPatches.add(insert(operation.getSrcNode(), mapping));
-                insert(operation.getSrcNode(), mapping);
             }
         }
     }
