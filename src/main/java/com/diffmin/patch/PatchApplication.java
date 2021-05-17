@@ -2,6 +2,7 @@ package com.diffmin.patch;
 
 import com.diffmin.util.Pair;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import spoon.reflect.code.CtExpression;
@@ -12,26 +13,21 @@ import spoon.reflect.declaration.*;
 import spoon.reflect.reference.CtTypeReference;
 
 /** Class for applying patches. */
-public class Application {
-    private final Set<CtElement> deletePatches;
-    private final Set<Pair<CtElement, CtElement>> updatePatches;
-    private final Set<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches;
+public class PatchApplication {
 
-    /** Instantiates the class with the patches. */
-    public Application(
-            Set<CtElement> deletePatches,
-            Set<Pair<CtElement, CtElement>> updatePatches,
-            Set<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches) {
-        this.deletePatches = deletePatches;
-        this.updatePatches = updatePatches;
-        this.insertPatches = insertPatches;
+    /** Override constructor to prevent instantiating of this class (RSPEC-1118). */
+    private PatchApplication() {
+        throw new IllegalStateException("Utility classes should not be instantiated");
     }
 
     /** Apply all the patches generated. */
-    public void applyPatch() {
-        deletePatches.forEach(Application::performDeletion);
-        updatePatches.forEach(Application::performUpdating);
-        insertPatches.forEach(Application::performInsertion);
+    public static void applyPatch(
+            List<CtElement> deletePatches,
+            List<Pair<CtElement, CtElement>> updatePatches,
+            List<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches) {
+        deletePatches.forEach(PatchApplication::performDeletion);
+        updatePatches.forEach(PatchApplication::performUpdating);
+        insertPatches.forEach(PatchApplication::performInsertion);
     }
 
     /** Apply the delete patch. */

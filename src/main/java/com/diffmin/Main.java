@@ -1,15 +1,12 @@
 package com.diffmin;
 
-import com.diffmin.patch.Application;
-import com.diffmin.patch.Generation;
+import com.diffmin.patch.PatchApplication;
+import com.diffmin.patch.PatchGeneration;
 import com.diffmin.util.Pair;
 import gumtree.spoon.diff.Diff;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Set;
-import org.apache.commons.lang3.tuple.ImmutableTriple;
 import spoon.reflect.CtModel;
-import spoon.reflect.declaration.CtElement;
 
 /** Main execution of generating and applying patch */
 class Main {
@@ -25,17 +22,14 @@ class Main {
         Pair<Diff, CtModel> diffAndModel = App.computeDiff(prevFile, newFile);
 
         // Generate patches
-        Generation patchGenerationFactory = new Generation();
-        patchGenerationFactory.generatePatch(diffAndModel.getFirst());
-        Set<CtElement> deletePatches = patchGenerationFactory.deletePatches;
-        Set<Pair<CtElement, CtElement>> updatePatches = patchGenerationFactory.updatePatches;
-        Set<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches =
-                patchGenerationFactory.insertPatches;
+        PatchGeneration patchGeneration = new PatchGeneration();
+        patchGeneration.generatePatch(diffAndModel.getFirst());
 
         // Apply patches
-        Application patchApplicationFactory =
-                new Application(deletePatches, updatePatches, insertPatches);
-        patchApplicationFactory.applyPatch();
+        PatchApplication.applyPatch(
+                patchGeneration.getDeletePatches(),
+                patchGeneration.getUpdatePatches(),
+                patchGeneration.getInsertPatches());
 
         // Modified model
         return diffAndModel.getSecond();

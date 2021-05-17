@@ -7,9 +7,8 @@ import com.github.gumtreediff.actions.model.Insert;
 import com.github.gumtreediff.actions.model.Update;
 import gumtree.spoon.diff.Diff;
 import gumtree.spoon.diff.operations.Operation;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.IntStream;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import spoon.reflect.code.CtInvocation;
@@ -19,11 +18,26 @@ import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtExecutable;
 
 /** Class for generating patches. */
-public class Generation {
-    public final Set<CtElement> deletePatches = new HashSet<>();
-    public final Set<Pair<CtElement, CtElement>> updatePatches = new HashSet<>();
-    public final Set<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches =
-            new HashSet<>();
+public class PatchGeneration {
+    private final List<CtElement> deletePatches = new ArrayList<>();
+    private final List<Pair<CtElement, CtElement>> updatePatches = new ArrayList<>();
+    private final List<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches =
+            new ArrayList<>();
+
+    /** Returns the delete patches. */
+    public List<CtElement> getDeletePatches() {
+        return deletePatches;
+    }
+
+    /** Returns the update patches. */
+    public List<Pair<CtElement, CtElement>> getUpdatePatches() {
+        return updatePatches;
+    }
+
+    /** Returns the insert patches. */
+    public List<ImmutableTriple<Integer, CtElement, CtElement>> getInsertPatches() {
+        return insertPatches;
+    }
 
     /** Generates the patches. */
     public void generatePatch(Diff diff) {
