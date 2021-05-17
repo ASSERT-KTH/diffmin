@@ -23,6 +23,7 @@ import spoon.compiler.SpoonResourceHelper;
 import spoon.reflect.CtModel;
 import spoon.reflect.code.*;
 import spoon.reflect.declaration.*;
+import spoon.reflect.reference.CtTypeReference;
 import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 import spoon.reflect.visitor.PrettyPrinter;
 
@@ -208,6 +209,12 @@ public class App {
             case PARAMETER:
                 ((CtExecutable<?>) inWhichElement)
                         .addParameterAt(where, (CtParameter<?>) toBeInserted);
+                break;
+            case THROWN:
+                Set<CtTypeReference<? extends Throwable>> thrownTypesCopy =
+                        new HashSet<>(
+                                ((CtExecutable<?>) toBeInserted.getParent()).getThrownTypes());
+                ((CtExecutable<?>) inWhichElement).setThrownTypes(thrownTypesCopy);
                 break;
             default:
                 inWhichElement.setValueByRole(toBeInserted.getRoleInParent(), toBeInserted);
