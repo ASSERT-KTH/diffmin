@@ -24,10 +24,12 @@ public class PatchApplication {
     public static void applyPatch(
             List<CtElement> deletePatches,
             List<Pair<CtElement, CtElement>> updatePatches,
-            List<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches) {
+            List<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches,
+            List<Pair<CtElement, ImmutableTriple<Integer, CtElement, CtElement>>> movePatches) {
         deletePatches.forEach(PatchApplication::performDeletion);
         updatePatches.forEach(PatchApplication::performUpdating);
         insertPatches.forEach(PatchApplication::performInsertion);
+        movePatches.forEach(PatchApplication::performMovement);
     }
 
     /** Apply the delete patch. */
@@ -79,5 +81,14 @@ public class PatchApplication {
                 inWhichElement.setValueByRole(toBeInserted.getRoleInParent(), toBeInserted);
                 break;
         }
+    }
+
+    private static void performMovement(
+            Pair<CtElement, ImmutableTriple<Integer, CtElement, CtElement>> movePatch) {
+        CtElement toBeDeleted = movePatch.getFirst();
+        ImmutableTriple<Integer, CtElement, CtElement> toBeInserted = movePatch.getSecond();
+
+        performDeletion(toBeDeleted);
+        performInsertion(toBeInserted);
     }
 }

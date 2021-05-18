@@ -4,6 +4,7 @@ import com.diffmin.SpoonMapping;
 import com.diffmin.util.Pair;
 import com.github.gumtreediff.actions.model.Delete;
 import com.github.gumtreediff.actions.model.Insert;
+import com.github.gumtreediff.actions.model.Move;
 import com.github.gumtreediff.actions.model.Update;
 import gumtree.spoon.diff.Diff;
 import gumtree.spoon.diff.operations.Operation;
@@ -23,6 +24,8 @@ public class PatchGeneration {
     private final List<Pair<CtElement, CtElement>> updatePatches = new ArrayList<>();
     private final List<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches =
             new ArrayList<>();
+    private final List<Pair<CtElement, ImmutableTriple<Integer, CtElement, CtElement>>>
+            movePatches = new ArrayList<>();
 
     /** Returns the delete patches. */
     public List<CtElement> getDeletePatches() {
@@ -39,6 +42,11 @@ public class PatchGeneration {
         return insertPatches;
     }
 
+    /** Returns the move patches. */
+    public List<Pair<CtElement, ImmutableTriple<Integer, CtElement, CtElement>>> getMovePatches() {
+        return movePatches;
+    }
+
     /** Generates the patches. */
     public void generatePatch(Diff diff) {
         @SuppressWarnings("rawtypes")
@@ -51,6 +59,8 @@ public class PatchGeneration {
                 updatePatches.add(update(operation.getSrcNode(), operation.getDstNode()));
             } else if (operation.getAction() instanceof Insert) {
                 insertPatches.add(insert(operation.getSrcNode(), mapping));
+            } else if (operation.getAction() instanceof Move) {
+                movePatches.add(move(operation.getSrcNode(), operation.getDstNode(), mapping));
             }
         }
     }
@@ -112,5 +122,12 @@ public class PatchGeneration {
 
     private interface InsertionUtil {
         int getSrcNodeIndex(CtElement element);
+    }
+
+    private static Pair<CtElement, ImmutableTriple<Integer, CtElement, CtElement>> move(
+            CtElement srcNode, CtElement dstNode, SpoonMapping mapping) {
+        CtElement deletedNode = delete(srcNode);
+        ImmutableTriple<Integer, CtElement, CtElement> insertedNode = insert(dstNode, mapping);
+        return new Pair<>(deletedNode, insertedNode);
     }
 }
