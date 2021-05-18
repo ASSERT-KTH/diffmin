@@ -1,40 +1,26 @@
 package com.diffmin;
 
 import com.diffmin.util.Pair;
-import com.github.gumtreediff.actions.model.Delete;
-import com.github.gumtreediff.actions.model.Insert;
-import com.github.gumtreediff.actions.model.Update;
 import gumtree.spoon.AstComparator;
 import gumtree.spoon.diff.Diff;
-import gumtree.spoon.diff.operations.Operation;
-import gumtree.spoon.diff.operations.OperationKind;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.IntStream;
-import org.apache.commons.lang3.tuple.ImmutableTriple;
 import spoon.Launcher;
 import spoon.compiler.Environment;
 import spoon.compiler.SpoonResource;
 import spoon.compiler.SpoonResourceHelper;
 import spoon.reflect.CtModel;
-import spoon.reflect.code.*;
 import spoon.reflect.declaration.*;
-import spoon.reflect.reference.CtTypeReference;
 import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 import spoon.reflect.visitor.PrettyPrinter;
 
 /** Computes the edit script and uses it to patch the previous version. */
 public class App {
-    private final List<CtElement> deletePatches = new ArrayList<>();
 
-    private final List<Pair<CtElement, CtElement>> updatePatches = new ArrayList<>();
-
-    private final Set<ImmutableTriple<Integer, CtElement, CtElement>> insertPatches =
-            new HashSet<>();
+    /** Override constructor to prevent instantiating of this class (RSPEC-1118). */
+    private App() {
+        throw new IllegalStateException("Utility classes should not be instantiated");
+    }
 
     /**
      * Returns the root package of the file.
@@ -90,30 +76,6 @@ public class App {
     }
 
     /**
-     * Returns the corresponding list of elements in parent.
-     *
-     * @param element the element whose parent is a collection
-     * @return the list of entities the `element`'s parent contains
-     */
-    private List<? extends CtElement> getCollectionElementList(CtElement element) {
-        switch (element.getRoleInParent()) {
-            case STATEMENT:
-                return ((CtStatementList) element.getParent()).getStatements();
-            case ARGUMENT:
-                return ((CtInvocation<?>) element.getParent()).getArguments();
-            case TYPE_MEMBER:
-                return ((CtClass<?>) element.getParent()).getTypeMembers();
-            case TYPE_PARAMETER:
-                return ((CtClass<?>) element.getParent()).getFormalCtTypeParameters();
-            case PARAMETER:
-                return ((CtExecutable<?>) element.getParent()).getParameters();
-            default:
-                throw new UnsupportedOperationException(
-                        "Unsupported role: " + element.getRoleInParent());
-        }
-    }
-
-    /**
      * Pretty prints the model.
      *
      * @param model model to be pretty printed
@@ -127,98 +89,5 @@ public class App {
         // our custom configured one.
         PrettyPrinter printer = cu.getFactory().getEnvironment().createPrettyPrinter();
         return printer.prettyprint(cu);
-    }
-
-    /** Computes the index at which the `insertedNode` has to be inserted. */
-    private int getInsertIndex(CtElement insertedNode) {
-        CtElement insertedNodeParent = insertedNode.getParent();
-        if (insertedNodeParent.getValueByRole(insertedNode.getRoleInParent()) instanceof List) {
-            List<? extends CtElement> newCollectionList = getCollectionElementList(insertedNode);
-            return IntStream.range(0, newCollectionList.size())
-                    .filter((i) -> newCollectionList.get(i) == insertedNode)
-                    .findFirst()
-                    .getAsInt();
-        }
-        return -1;
-    }
-
-    /**
-     * Generate list of patches for each individual operation type - {@link OperationKind}.
-     *
-     * @param diff the diff to generate a patch from
-     */
-    public void generatePatch(Diff diff) {
-        @SuppressWarnings("rawtypes")
-        List<Operation> operations = diff.getRootOperations();
-        SpoonMapping mapping = SpoonMapping.fromGumTreeMapping(diff.getMappingsComp());
-        for (Operation<?> operation : operations) {
-            if (operation.getAction() instanceof Delete) {
-                CtElement removedNode = operation.getSrcNode();
-                deletePatches.add(removedNode);
-            } else if (operation.getAction() instanceof Update) {
-                CtElement srcNode = operation.getSrcNode();
-                CtElement dstNode = operation.getDstNode();
-                updatePatches.add(new Pair<>(srcNode, dstNode));
-            } else if (operation.getAction() instanceof Insert) {
-                CtElement insertedNode = operation.getSrcNode();
-                CtElement insertedNodeParent = insertedNode.getParent();
-                int srcNodeIndex = getInsertIndex(insertedNode);
-                CtElement parentElementInPrevModel = mapping.get(insertedNodeParent);
-                insertPatches.add(
-                        new ImmutableTriple<>(
-                                srcNodeIndex, insertedNode, parentElementInPrevModel));
-            }
-        }
-    }
-
-    /** Apply all the patches generated. */
-    public void applyPatch() {
-        for (CtElement element : deletePatches) {
-            element.delete();
-        }
-        for (Pair<CtElement, CtElement> update : updatePatches) {
-            CtElement prevNode = update.getFirst();
-            CtElement newNode = update.getSecond();
-            prevNode.replace(newNode);
-        }
-        insertPatches.forEach(App::applyInsertion);
-    }
-
-    /** Apply the insert patch. */
-    private static void applyInsertion(ImmutableTriple<Integer, CtElement, CtElement> insert) {
-        int where = insert.left;
-        CtElement toBeInserted = insert.middle;
-        CtElement inWhichElement = insert.right;
-
-        switch (toBeInserted.getRoleInParent()) {
-            case STATEMENT:
-                ((CtStatementList) inWhichElement)
-                        .addStatement(where, (CtStatement) toBeInserted.clone());
-                break;
-            case ARGUMENT:
-                ((CtInvocation<?>) inWhichElement)
-                        .addArgumentAt(where, (CtExpression<?>) toBeInserted);
-                break;
-            case TYPE_MEMBER:
-                ((CtClass<?>) inWhichElement).addTypeMemberAt(where, (CtTypeMember) toBeInserted);
-                break;
-            case TYPE_PARAMETER:
-                ((CtClass<?>) inWhichElement)
-                        .addFormalCtTypeParameterAt(where, (CtTypeParameter) toBeInserted);
-                break;
-            case PARAMETER:
-                ((CtExecutable<?>) inWhichElement)
-                        .addParameterAt(where, (CtParameter<?>) toBeInserted);
-                break;
-            case THROWN:
-                Set<CtTypeReference<? extends Throwable>> thrownTypesCopy =
-                        new HashSet<>(
-                                ((CtExecutable<?>) toBeInserted.getParent()).getThrownTypes());
-                ((CtExecutable<?>) inWhichElement).setThrownTypes(thrownTypesCopy);
-                break;
-            default:
-                inWhichElement.setValueByRole(toBeInserted.getRoleInParent(), toBeInserted);
-                break;
-        }
     }
 }

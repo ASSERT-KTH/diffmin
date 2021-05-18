@@ -1,5 +1,7 @@
 package com.diffmin;
 
+import com.diffmin.patch.PatchApplication;
+import com.diffmin.patch.PatchGeneration;
 import com.diffmin.util.Pair;
 import gumtree.spoon.diff.Diff;
 import java.io.File;
@@ -16,12 +18,20 @@ class Main {
      * @param newFile Modified version of the file
      * @throws FileNotFoundException Exception is raised when path of either file is invalid
      */
-    public static CtModel patchAndGenerateModel(File prevFile, File newFile)
-            throws FileNotFoundException {
-        App app = new App();
+    static CtModel patchAndGenerateModel(File prevFile, File newFile) throws FileNotFoundException {
         Pair<Diff, CtModel> diffAndModel = App.computeDiff(prevFile, newFile);
-        app.generatePatch(diffAndModel.getFirst());
-        app.applyPatch();
+
+        // Generate patches
+        PatchGeneration patchGeneration = new PatchGeneration();
+        patchGeneration.generatePatch(diffAndModel.getFirst());
+
+        // Apply patches
+        PatchApplication.applyPatch(
+                patchGeneration.getDeletePatches(),
+                patchGeneration.getUpdatePatches(),
+                patchGeneration.getInsertPatches());
+
+        // Modified model
         return diffAndModel.getSecond();
     }
 
