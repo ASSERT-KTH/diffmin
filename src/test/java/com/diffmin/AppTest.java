@@ -3,6 +3,7 @@ package com.diffmin;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.diffmin.util.SpoonUtil;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -183,7 +184,7 @@ public class AppTest {
         File f1 = sources.prevPath.toFile();
         File f2 = sources.newPath.toFile();
         CtModel patchedCtModel = Main.patchAndGenerateModel(f1, f2);
-        CtModel expectedModel = App.buildModel(sources.newPath.toFile());
+        CtModel expectedModel = SpoonUtil.buildModel(sources.newPath.toFile());
         Optional<CtType<?>> firstType = expectedModel.getAllTypes().stream().findFirst();
         if (firstType.isEmpty()) {
             assertTrue(
@@ -196,7 +197,7 @@ public class AppTest {
                             .getFactory()
                             .CompilationUnit()
                             .getOrCreate(retrievedFirstType);
-            String patchedProgram = App.displayModifiedModel(patchedCtModel);
+            String patchedProgram = SpoonUtil.displayModifiedModel(patchedCtModel);
             assertEquals(cu.prettyprint(), patchedProgram, "Prev file was not patched correctly");
         }
     }
