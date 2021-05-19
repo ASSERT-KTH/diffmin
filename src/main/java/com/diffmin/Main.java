@@ -29,7 +29,8 @@ class Main {
         PatchApplication.applyPatch(
                 patchGeneration.getDeletePatches(),
                 patchGeneration.getUpdatePatches(),
-                patchGeneration.getInsertPatches());
+                patchGeneration.getInsertPatches(),
+                patchGeneration.getMovePatches());
 
         // Modified model
         return diffAndModel.getSecond();
