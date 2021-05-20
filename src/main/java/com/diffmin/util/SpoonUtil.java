@@ -1,6 +1,5 @@
-package com.diffmin;
+package com.diffmin.util;
 
-import com.diffmin.util.Pair;
 import gumtree.spoon.AstComparator;
 import gumtree.spoon.diff.Diff;
 import java.io.File;
@@ -14,11 +13,10 @@ import spoon.reflect.declaration.*;
 import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 import spoon.reflect.visitor.PrettyPrinter;
 
-/** Computes the edit script and uses it to patch the previous version. */
-public class App {
-
+/** Utility class for interacting with the {@link CtModel} and computing {@link Diff}. */
+public class SpoonUtil {
     /** Override constructor to prevent instantiating of this class (RSPEC-1118). */
-    private App() {
+    private SpoonUtil() {
         throw new IllegalStateException("Utility classes should not be instantiated");
     }
 
@@ -58,7 +56,7 @@ public class App {
      * @return located node in the prev file model
      * @throws FileNotFoundException Exception raised via {@link SpoonResourceHelper}
      */
-    static CtModel buildModel(File file) throws FileNotFoundException {
+    public static CtModel buildModel(File file) throws FileNotFoundException {
         final SpoonResource resource = SpoonResourceHelper.createResource(file);
         final Launcher launcher = new Launcher();
         Environment env = launcher.getEnvironment();

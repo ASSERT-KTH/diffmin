@@ -3,6 +3,7 @@ package com.diffmin;
 import com.diffmin.patch.PatchApplication;
 import com.diffmin.patch.PatchGeneration;
 import com.diffmin.util.Pair;
+import com.diffmin.util.SpoonUtil;
 import gumtree.spoon.diff.Diff;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -19,7 +20,7 @@ class Main {
      * @throws FileNotFoundException Exception is raised when path of either file is invalid
      */
     static CtModel patchAndGenerateModel(File prevFile, File newFile) throws FileNotFoundException {
-        Pair<Diff, CtModel> diffAndModel = App.computeDiff(prevFile, newFile);
+        Pair<Diff, CtModel> diffAndModel = SpoonUtil.computeDiff(prevFile, newFile);
 
         // Generate patches
         PatchGeneration patchGeneration = new PatchGeneration();
@@ -47,7 +48,7 @@ class Main {
             System.exit(1);
         }
         CtModel patchedCtModel = Main.patchAndGenerateModel(new File(args[0]), new File(args[1]));
-        System.out.println(App.displayModifiedModel(patchedCtModel));
+        System.out.println(SpoonUtil.displayModifiedModel(patchedCtModel));
         System.exit(0);
     }
 }
