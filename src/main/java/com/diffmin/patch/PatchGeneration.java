@@ -15,9 +15,8 @@ import java.util.stream.IntStream;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import spoon.reflect.code.CtInvocation;
 import spoon.reflect.code.CtStatementList;
-import spoon.reflect.declaration.CtClass;
-import spoon.reflect.declaration.CtElement;
-import spoon.reflect.declaration.CtExecutable;
+import spoon.reflect.declaration.*;
+import spoon.reflect.path.CtRole;
 
 /** Class for generating patches. */
 public class PatchGeneration {
@@ -113,8 +112,8 @@ public class PatchGeneration {
                     @Override
                     public int getSrcNodeIndex(CtElement srcNode) {
                         CtElement srcNodeParent = srcNode.getParent();
-                        if (srcNodeParent.getValueByRole(srcNode.getRoleInParent())
-                                instanceof List) {
+                        if (srcNodeParent.getValueByRole(srcNode.getRoleInParent()) instanceof List
+                                || srcNode.getRoleInParent().equals(CtRole.CONTAINED_TYPE)) {
                             List<? extends CtElement> newCollectionList =
                                     getCollectionElementList(srcNode);
                             return IntStream.range(0, newCollectionList.size())
@@ -139,6 +138,12 @@ public class PatchGeneration {
                                         .getFormalCtTypeParameters();
                             case PARAMETER:
                                 return ((CtExecutable<?>) element.getParent()).getParameters();
+                            case CONTAINED_TYPE:
+                                CtCompilationUnit cu =
+                                        element.getFactory()
+                                                .CompilationUnit()
+                                                .getOrCreate((CtType<?>) element);
+                                return cu.getDeclaredTypes();
                             default:
                                 throw new UnsupportedOperationException(
                                         "Unsupported role: " + element.getRoleInParent());

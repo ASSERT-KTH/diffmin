@@ -77,6 +77,28 @@ public class PatchApplication {
                                 ((CtExecutable<?>) toBeInserted.getParent()).getThrownTypes());
                 ((CtExecutable<?>) inWhichElement).setThrownTypes(thrownTypesCopy);
                 break;
+            case CONTAINED_TYPE:
+                // Inserting into CtPackage
+                Set<CtType<?>> typesCopy =
+                        new HashSet<>(((CtPackage) toBeInserted.getParent()).getTypes());
+                for (CtType<?> type : typesCopy) {
+                    type.setParent(inWhichElement);
+                }
+                ((CtPackage) inWhichElement).setTypes(typesCopy);
+
+                // Inserting into CtCompilationUnit
+                CtCompilationUnit cu =
+                        inWhichElement
+                                .getFactory()
+                                .CompilationUnit()
+                                .getOrCreate((CtPackage) inWhichElement);
+                List<CtType<?>> types = cu.getDeclaredTypes();
+                if (types.isEmpty()) {
+                    cu.addDeclaredType((CtType<?>) toBeInserted);
+                } else {
+                    types.add(where, (CtType<?>) toBeInserted);
+                }
+                break;
             default:
                 inWhichElement.setValueByRole(toBeInserted.getRoleInParent(), toBeInserted);
                 break;
