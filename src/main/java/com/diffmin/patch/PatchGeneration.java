@@ -113,7 +113,7 @@ public class PatchGeneration {
                     public int getSrcNodeIndex(CtElement srcNode) {
                         CtElement srcNodeParent = srcNode.getParent();
                         if (srcNodeParent.getValueByRole(srcNode.getRoleInParent()) instanceof List
-                                || srcNode.getRoleInParent().equals(CtRole.CONTAINED_TYPE)) {
+                                || srcNode.getRoleInParent() == CtRole.CONTAINED_TYPE) {
                             List<? extends CtElement> newCollectionList =
                                     getCollectionElementList(srcNode);
                             return IntStream.range(0, newCollectionList.size())
