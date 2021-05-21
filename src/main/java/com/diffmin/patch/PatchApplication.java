@@ -4,6 +4,7 @@ import com.diffmin.util.Pair;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import spoon.reflect.code.CtExpression;
 import spoon.reflect.code.CtInvocation;
@@ -80,10 +81,10 @@ public class PatchApplication {
             case CONTAINED_TYPE:
                 // Inserting into CtPackage
                 Set<CtType<?>> typesCopy =
-                        new HashSet<>(((CtPackage) toBeInserted.getParent()).getTypes());
-                for (CtType<?> type : typesCopy) {
-                    type.setParent(inWhichElement);
-                }
+                        ((CtType<?>) toBeInserted)
+                                .getPackage().getTypes().stream()
+                                        .map(CtType::clone)
+                                        .collect(Collectors.toSet());
                 ((CtPackage) inWhichElement).setTypes(typesCopy);
 
                 // Inserting into CtCompilationUnit
