@@ -2,9 +2,7 @@ package com.diffmin;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.diffmin.util.Pair;
 import com.diffmin.util.SpoonUtil;
-import gumtree.spoon.diff.Diff;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,8 +16,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import spoon.reflect.CtModel;
+import spoon.reflect.declaration.CtCompilationUnit;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtPackage;
+import spoon.reflect.declaration.CtType;
 import spoon.reflect.path.CtPath;
 
 /** Unit test for simple App. */
@@ -207,7 +207,9 @@ public class AppTest {
     }
 
     private static boolean isToIgnore(CtElement element, List<String> lines) {
-        if (element instanceof CtPackage || element.isImplicit()) {
+        if (element instanceof CtPackage
+                || element.isImplicit()
+                || element.getParent(CtElement::isImplicit) != null) {
             return true;
         }
         String pathString = element.getPath().toString();
@@ -219,50 +221,49 @@ public class AppTest {
         File f1 = sources.prevPath.toFile();
         File f2 = sources.newPath.toFile();
 
-        Pair<Diff, CtModel> diffAndModel = Main.patchAndGenerateModel(f1, f2);
-        Diff diff = diffAndModel.getFirst();
-        CtModel patchedCtModel = diffAndModel.getSecond();
-        SpoonMapping mapping = SpoonMapping.fromGumTreeMapping(diff.getMappingsComp());
+        // check the structure
+        CtModel patchedCtModel = Main.patchAndGenerateModel(f1, f2);
+        CtModel expectedModel = SpoonUtil.buildModel(sources.newPath.toFile());
+        Optional<CtType<?>> firstType = expectedModel.getAllTypes().stream().findFirst();
+        if (firstType.isEmpty()) {
+            assertTrue(
+                    patchedCtModel.getAllTypes().stream().findFirst().isEmpty(),
+                    "Patched prev file is not empty");
+        } else {
+            CtType<?> retrievedFirstType = firstType.get();
+            CtCompilationUnit cu =
+                    retrievedFirstType
+                            .getFactory()
+                            .CompilationUnit()
+                            .getOrCreate(retrievedFirstType);
+            String patchedProgram = SpoonUtil.displayModifiedModel(patchedCtModel);
+            assertEquals(cu.prettyprint(), patchedProgram, "Prev file was not patched correctly");
 
-        CtPackage prevPackage = SpoonUtil.buildModel(f1).getRootPackage();
-        CtPackage newPackage = SpoonUtil.buildModel(f2).getRootPackage();
+            // check the root origination of each element
+            List<String> insertedLines = Files.readAllLines(sources.insertedPaths);
 
-        List<String> insertedLines = Files.readAllLines(sources.insertedPaths);
+            Iterator<CtElement> it = patchedCtModel.getRootPackage().descendantIterator();
 
-        Iterator<CtElement> it = patchedCtModel.getRootPackage().descendantIterator();
-
-        while (it.hasNext()) {
-            CtElement element = it.next();
-            if (isToIgnore(element, insertedLines)) {
-                continue;
-            }
-            CtPath path = element.getPath();
-            // for inserted elements
-
-            // Check if any of the path in metadata file match in patched program
-            if (insertedLines.stream()
-                    .anyMatch(line -> line.equals(path.toString()))) {
-                // Cases when the paths are same but the elements are different.
-                if (!path.evaluateOn(prevPackage).isEmpty()) {
-                    assertNotEquals(path.evaluateOn(prevPackage), path.evaluateOn(newPackage));
+            while (it.hasNext()) {
+                CtElement element = it.next();
+                if (isToIgnore(element, insertedLines)) {
+                    continue;
                 }
-                // The matched line should be there in new model and should match only once
-                assertEquals(1, path.evaluateOn(newPackage).size());
-            }
-            // There is no entry of the path of the element in the metadata file
-            else {
-                // If the element is not in prev model too, that means the path of the
-                // element has changed. We need to use `mapping`.
-                if (path.evaluateOn(prevPackage).size() == 0) {
-                    CtElement mappedElementInPrev = mapping.get(element);
-                    assertEquals(1, mappedElementInPrev.getPath().evaluateOn(prevPackage).size());
+                CtPath path = element.getPath();
+
+                // Check if any of the path in metadata file match in patched program
+                if (insertedLines.stream().anyMatch(line -> line.equals(path.toString()))) {
+                    assertTrue(
+                            element.getPosition().getFile().getName().startsWith(NEW_PREFIX),
+                            "Element should originate from new file but does not");
                 }
-                // If the element is in prev model, it should exist only once.
+                // Case when there is no entry of the path of the element in the metadata file
                 else {
-                    assertEquals(
-                            1,
-                            path.evaluateOn(prevPackage).size(),
-                            path + " does not exist in prev file");
+                    if (element.getPosition().getFile() != null) {
+                        assertTrue(
+                                element.getPosition().getFile().getName().startsWith(PREV_PREFIX),
+                                "Element should originate from prev file but does not");
+                    }
                 }
             }
         }

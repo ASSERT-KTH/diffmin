@@ -19,8 +19,7 @@ class Main {
      * @param newFile Modified version of the file
      * @throws FileNotFoundException Exception is raised when path of either file is invalid
      */
-    static Pair<Diff, CtModel> patchAndGenerateModel(File prevFile, File newFile)
-            throws FileNotFoundException {
+    static CtModel patchAndGenerateModel(File prevFile, File newFile) throws FileNotFoundException {
         Pair<Diff, CtModel> diffAndModel = SpoonUtil.computeDiff(prevFile, newFile);
 
         // Generate patches
@@ -35,7 +34,7 @@ class Main {
                 patchGeneration.getMovePatches());
 
         // Modified model
-        return diffAndModel;
+        return diffAndModel.getSecond();
     }
 
     /**
@@ -48,8 +47,7 @@ class Main {
             System.out.println("Usage: DiffSpoon <file_1>  <file_2>");
             System.exit(1);
         }
-        CtModel patchedCtModel =
-                Main.patchAndGenerateModel(new File(args[0]), new File(args[1])).getSecond();
+        CtModel patchedCtModel = Main.patchAndGenerateModel(new File(args[0]), new File(args[1]));
         System.out.println(SpoonUtil.displayModifiedModel(patchedCtModel));
         System.exit(0);
     }
