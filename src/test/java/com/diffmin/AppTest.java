@@ -18,9 +18,8 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtCompilationUnit;
 import spoon.reflect.declaration.CtElement;
-import spoon.reflect.declaration.CtPackage;
 import spoon.reflect.declaration.CtType;
-import spoon.reflect.path.CtPath;
+import spoon.reflect.visitor.CtScanner;
 
 /** Unit test for simple App. */
 public class AppTest {
@@ -206,17 +205,6 @@ public class AppTest {
         runTests(sources);
     }
 
-    private static boolean isToIgnore(CtElement element, List<String> lines) {
-        if (element instanceof CtPackage
-                || element.isImplicit()
-                || element.getParent(CtElement::isImplicit) != null) {
-            return true;
-        }
-        String pathString = element.getPath().toString();
-        return lines.stream()
-                .anyMatch(line -> !(line.equals(pathString)) && pathString.startsWith(line));
-    }
-
     private static void runTests(TestResources sources) throws Exception {
         File f1 = sources.prevPath.toFile();
         File f2 = sources.newPath.toFile();
@@ -240,32 +228,50 @@ public class AppTest {
             assertEquals(cu.prettyprint(), patchedProgram, "Prev file was not patched correctly");
 
             // check the root origination of each element
-            List<String> insertedLines = Files.readAllLines(sources.insertedPaths);
+            Set<String> insertedLines = new HashSet<>(Files.readAllLines(sources.insertedPaths));
 
-            Iterator<CtElement> it = patchedCtModel.getRootPackage().descendantIterator();
+            CtScanner scanner =
+                    new CtScanner() {
+                        @Override
+                        public void scan(CtElement element) {
+                            if (element != null
+                                    && !element.isImplicit()
+                                    && element.getPosition().isValidPosition()) {
+                                String pathString = element.getPath().toString();
+                                // Check if element is children of an inserted element
+                                if (insertedLines.stream()
+                                        .anyMatch(
+                                                line ->
+                                                        !(line.equals(pathString))
+                                                                && pathString.startsWith(line))) {
+                                    return;
+                                }
 
-            while (it.hasNext()) {
-                CtElement element = it.next();
-                if (isToIgnore(element, insertedLines)) {
-                    continue;
-                }
-                CtPath path = element.getPath();
-
-                // Check if any of the path in metadata file match in patched program
-                if (insertedLines.stream().anyMatch(line -> line.equals(path.toString()))) {
-                    assertTrue(
-                            element.getPosition().getFile().getName().startsWith(NEW_PREFIX),
-                            "Element should originate from new file but does not");
-                }
-                // Case when there is no entry of the path of the element in the metadata file
-                else {
-                    if (element.getPosition().getFile() != null) {
-                        assertTrue(
-                                element.getPosition().getFile().getName().startsWith(PREV_PREFIX),
-                                "Element should originate from prev file but does not");
-                    }
-                }
-            }
+                                // Check if any of the path in metadata file match in patched
+                                // program
+                                if (insertedLines.contains(pathString)) {
+                                    assertTrue(
+                                            element.getPosition()
+                                                    .getFile()
+                                                    .getName()
+                                                    .startsWith(NEW_PREFIX),
+                                            "Element should originate from new file but does not");
+                                }
+                                // Case when there is no entry of the path of the element in the
+                                // metadata file
+                                else {
+                                    assertTrue(
+                                            element.getPosition()
+                                                    .getFile()
+                                                    .getName()
+                                                    .startsWith(PREV_PREFIX),
+                                            "Element should originate from prev file but does not");
+                                }
+                            }
+                            super.scan(element);
+                        }
+                    };
+            scanner.scan(patchedCtModel.getRootPackage());
         }
     }
 }
