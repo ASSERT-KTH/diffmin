@@ -18,7 +18,9 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtCompilationUnit;
 import spoon.reflect.declaration.CtElement;
+import spoon.reflect.declaration.CtExecutable;
 import spoon.reflect.declaration.CtType;
+import spoon.reflect.path.CtRole;
 import spoon.reflect.visitor.CtScanner;
 
 /** Unit test for simple App. */
@@ -234,13 +236,32 @@ public class AppTest {
 
             CtScanner scanner =
                     new CtScanner() {
+                        private boolean doesElementBelongToGivenFile(
+                                CtElement element, String prefix) {
+                            return element.getPosition().getFile().getName().startsWith(prefix);
+                        }
+
+                        /** Checks if any of the members of a set collection are modified. */
+                        private boolean isSetCollectionModified(CtElement element) {
+                            if (element.getRoleInParent() == CtRole.THROWN) {
+                                return ((CtExecutable<?>) element.getParent())
+                                        .getThrownTypes().stream()
+                                                .anyMatch(
+                                                        thrownType ->
+                                                                doesElementBelongToGivenFile(
+                                                                        thrownType, NEW_PREFIX));
+                            }
+                            return false;
+                        }
+
                         @Override
                         public void scan(CtElement element) {
                             if (element != null
                                     && !element.isImplicit()
                                     && element.getPosition().isValidPosition()) {
                                 String pathString = element.getPath().toString();
-                                // Check if element is a child of an elemnent corresponding to new path
+                                // Check if element is a child of an element corresponding to new
+                                // path
                                 if (insertedLines.stream()
                                         .anyMatch(
                                                 line ->
@@ -251,22 +272,17 @@ public class AppTest {
 
                                 // Check if any of the path in metadata file match in patched
                                 // program
-                                if (insertedLines.contains(pathString)) {
+                                if (insertedLines.contains(pathString)
+                                        || isSetCollectionModified(element)) {
                                     assertTrue(
-                                            element.getPosition()
-                                                    .getFile()
-                                                    .getName()
-                                                    .startsWith(NEW_PREFIX),
+                                            doesElementBelongToGivenFile(element, NEW_PREFIX),
                                             "Element should originate from new file but does not");
                                 }
                                 // Case when there is no entry of the path of the element in the
                                 // metadata file
                                 else {
                                     assertTrue(
-                                            element.getPosition()
-                                                    .getFile()
-                                                    .getName()
-                                                    .startsWith(PREV_PREFIX),
+                                            doesElementBelongToGivenFile(element, PREV_PREFIX),
                                             "Element should originate from prev file but does not");
                                 }
                             }
