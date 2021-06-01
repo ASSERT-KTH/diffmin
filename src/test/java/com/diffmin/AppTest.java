@@ -41,7 +41,7 @@ public class AppTest {
 
     private static final String NEW_PREFIX = "NEW";
 
-    private static final String INSERTED_PATHS = "inserted_paths";
+    private static final String TEST_METADATA = "new_revision_paths";
 
     private static Stream<? extends Arguments> getArgumentSourceStream(
             File testDir, Function<File, TestResources> sourceGetter) {
@@ -59,7 +59,7 @@ public class AppTest {
 
         public Path newPath; // stylised new
 
-        public Path insertedPaths;
+        public Path testMetadata;
 
         /**
          * Constructor of {@link TestResources}.
@@ -67,12 +67,14 @@ public class AppTest {
          * @param prevPath path of the previous version of a file
          * @param newPath path of the new version of a file
          * @param parent name of the directory containing the two files
+         * @param testMetadata path to the file which contains {@link spoon.reflect.path.CtPath}
+         *     corresponding to elements in latest revision
          */
-        TestResources(Path prevPath, Path newPath, String parent, Path insertedPaths) {
+        TestResources(Path prevPath, Path newPath, String parent, Path testMetadata) {
             this.prevPath = prevPath;
             this.newPath = newPath;
             this.parent = parent;
-            this.insertedPaths = insertedPaths;
+            this.testMetadata = testMetadata;
         }
 
         /**
@@ -85,8 +87,8 @@ public class AppTest {
             String parent = testDir.getName();
             Path prevPath = getFilepathByPrefix(testDir, PREV_PREFIX);
             Path newPath = getFilepathByPrefix(testDir, NEW_PREFIX);
-            Path insertedPaths = getFilepathByPrefix(testDir, INSERTED_PATHS);
-            return new TestResources(prevPath, newPath, parent, insertedPaths);
+            Path testMetadata = getFilepathByPrefix(testDir, TEST_METADATA);
+            return new TestResources(prevPath, newPath, parent, testMetadata);
         }
 
         /**
@@ -228,7 +230,7 @@ public class AppTest {
             assertEquals(cu.prettyprint(), patchedProgram, "Prev file was not patched correctly");
 
             // check the root origination of each element
-            Set<String> insertedLines = new HashSet<>(Files.readAllLines(sources.insertedPaths));
+            Set<String> insertedLines = new HashSet<>(Files.readAllLines(sources.testMetadata));
 
             CtScanner scanner =
                     new CtScanner() {
@@ -238,7 +240,7 @@ public class AppTest {
                                     && !element.isImplicit()
                                     && element.getPosition().isValidPosition()) {
                                 String pathString = element.getPath().toString();
-                                // Check if element is children of an inserted element
+                                // Check if element is a child of an elemnent corresponding to new path
                                 if (insertedLines.stream()
                                         .anyMatch(
                                                 line ->
