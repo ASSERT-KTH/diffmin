@@ -1,0 +1,2 @@
+#containedType[name=Parameter]#constructor[signature=(int,int)]#parameter[name=divisor]
+#containedType[name=Parameter]#method[signature=sum(int,int,int)]#parameter[name=a]

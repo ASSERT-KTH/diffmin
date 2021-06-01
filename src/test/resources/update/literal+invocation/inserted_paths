@@ -1,0 +1,2 @@
+#containedType[name=Assert]#method[signature=main(java.lang.String[])]#body#statement[index=1]
+#containedType[name=Assert]#method[signature=main(java.lang.String[])]#body#statement[name=test]#defaultExpression

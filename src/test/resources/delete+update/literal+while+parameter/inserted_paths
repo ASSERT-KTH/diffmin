@@ -1,0 +1,2 @@
+#containedType[name=LiteralWhileParameter]#method[signature=main(java.lang.String[])]#parameter[name=updatedArgs]
+#containedType[name=LiteralWhileParameter]#method[signature=main(java.lang.String[])]#body#statement[index=1]#condition#rightOperand

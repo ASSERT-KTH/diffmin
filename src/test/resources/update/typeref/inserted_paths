@@ -1,0 +1,2 @@
+#containedType[name=TypeReference]#method[signature=main(java.lang.String[])]#body#statement[name=x]#type
+#containedType[name=TypeReference]#method[signature=main(java.lang.String[])]#body#statement[name=x]#defaultExpression
