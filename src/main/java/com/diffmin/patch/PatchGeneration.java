@@ -64,9 +64,9 @@ public class PatchGeneration {
             }
             CtElement parentNode = rootOperation.getSrcNode();
             boolean isItRootOperation = true;
-            for (int j = 0; j < list.size(); ++j) {
+            for (int j = 0; j < i; ++j) {
                 Operation<?> childOperation = list.get(j);
-                if (!(childOperation instanceof UpdateOperation) || i == j) {
+                if (!(childOperation instanceof UpdateOperation)) {
                     continue;
                 }
                 CtElement childNode = childOperation.getSrcNode();
