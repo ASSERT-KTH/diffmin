@@ -8,6 +8,7 @@ import com.github.gumtreediff.actions.model.Move;
 import com.github.gumtreediff.actions.model.Update;
 import gumtree.spoon.diff.Diff;
 import gumtree.spoon.diff.operations.Operation;
+import gumtree.spoon.diff.operations.UpdateOperation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -47,10 +48,44 @@ public class PatchGeneration {
         return movePatches;
     }
 
+    /**
+     * Filters out update operations which occur on direct descendants of node which is also being
+     * updated.
+     */
+    @SuppressWarnings("rawtypes")
+    private List<Operation> filterUpdateOperations(List<Operation> list) {
+        List<Operation> newList = new ArrayList<>();
+
+        for (int i = 0; i < list.size(); ++i) {
+            Operation<?> rootOperation = list.get(i);
+            if (!(rootOperation instanceof UpdateOperation)) {
+                newList.add(rootOperation);
+                continue;
+            }
+            CtElement parentNode = rootOperation.getSrcNode();
+            boolean isItRootOperation = true;
+            for (int j = 0; j < list.size(); ++j) {
+                Operation<?> childOperation = list.get(j);
+                if (!(childOperation instanceof UpdateOperation) || i == j) {
+                    continue;
+                }
+                CtElement childNode = childOperation.getSrcNode();
+                if (parentNode.hasParent(childNode)) {
+                    isItRootOperation = false;
+                    break;
+                }
+            }
+            if (isItRootOperation) {
+                newList.add(list.get(i));
+            }
+        }
+        return newList;
+    }
+
     /** Generates the patches. */
     public void generatePatch(Diff diff) {
         @SuppressWarnings("rawtypes")
-        List<Operation> operations = diff.getRootOperations();
+        List<Operation> operations = filterUpdateOperations(diff.getRootOperations());
         SpoonMapping mapping = SpoonMapping.fromGumTreeMapping(diff.getMappingsComp());
         for (Operation<?> operation : operations) {
             if (operation.getAction() instanceof Delete) {
