@@ -48,44 +48,39 @@ public class PatchGeneration {
         return movePatches;
     }
 
-    /**
-     * Filters out update operations which occur on direct descendants of node which is also being
-     * updated.
-     */
     @SuppressWarnings("rawtypes")
-    private List<Operation> filterUpdateOperations(List<Operation> list) {
-        List<Operation> newList = new ArrayList<>();
+    private List<Operation> getRootOperations(Diff diff) {
+        List<Operation> operations = diff.getRootOperations();
+        List<Operation> rootOperations = new ArrayList<>();
 
-        for (int i = 0; i < list.size(); ++i) {
-            Operation<?> rootOperation = list.get(i);
-            if (!(rootOperation instanceof UpdateOperation)) {
-                newList.add(rootOperation);
-                continue;
-            }
-            CtElement parentNode = rootOperation.getSrcNode();
-            boolean isItRootOperation = true;
-            for (int j = 0; j < i; ++j) {
-                Operation<?> childOperation = list.get(j);
-                if (!(childOperation instanceof UpdateOperation)) {
-                    continue;
-                }
-                CtElement childNode = childOperation.getSrcNode();
-                if (parentNode.hasParent(childNode)) {
-                    isItRootOperation = false;
-                    break;
-                }
-            }
-            if (isItRootOperation) {
-                newList.add(list.get(i));
+        for (Operation<?> operation : operations) {
+            if (isRootOperation(operation, rootOperations)) {
+                rootOperations.add(operation);
             }
         }
-        return newList;
+
+        return rootOperations;
+    }
+
+    @SuppressWarnings("rawtypes")
+    private boolean isRootOperation(Operation<?> operation, List<Operation> rootOperations) {
+        // assuming that insert, delete, and move root operations are correctly computed by
+        // gumtree-spoon-ast-diff
+        return !(operation instanceof UpdateOperation)
+                // excludes update operations if they are applied on node which is a descendant
+                // of another node and it is also being updated
+                || rootOperations.stream()
+                        .filter(UpdateOperation.class::isInstance)
+                        .map(Operation::getSrcNode)
+                        .noneMatch(
+                                rootOperationSrcNode ->
+                                        operation.getSrcNode().hasParent(rootOperationSrcNode));
     }
 
     /** Generates the patches. */
     public void generatePatch(Diff diff) {
         @SuppressWarnings("rawtypes")
-        List<Operation> operations = filterUpdateOperations(diff.getRootOperations());
+        List<Operation> operations = getRootOperations(diff);
         SpoonMapping mapping = SpoonMapping.fromGumTreeMapping(diff.getMappingsComp());
         for (Operation<?> operation : operations) {
             if (operation.getAction() instanceof Delete) {
