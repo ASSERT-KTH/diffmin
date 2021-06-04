@@ -209,39 +209,68 @@ public class AppTest {
         runTests(sources);
     }
 
-    private static boolean doesElementBelongToSpecifiedFile(
-            CtElement element, String filePathPrefix) {
-        return element.getPosition().getFile().getName().startsWith(filePathPrefix);
-    }
+    /** Scanner for checking source file of each element. */
+    static class ElementSourceFileChecker extends CtScanner {
+        private final Set<String> newRevisionPathStrings;
 
-    private static boolean doesElementBelongToModifiedSet(CtElement element) {
-        if (element.getRoleInParent() == CtRole.THROWN) {
-            return ((CtExecutable<?>) element.getParent())
-                    .getThrownTypes().stream()
-                            .anyMatch(
-                                    thrownType ->
-                                            doesElementBelongToSpecifiedFile(
-                                                    thrownType, NEW_PREFIX));
+        ElementSourceFileChecker(Set<String> newRevisionPathStrings) {
+            this.newRevisionPathStrings = newRevisionPathStrings;
         }
-        return false;
-    }
 
-    private static boolean isChildOfInsertedPath(
-            String elementPathString, Set<String> newRevisionPathStrings) {
-        return newRevisionPathStrings.stream()
-                .anyMatch(
-                        modifiedPathString ->
-                                !(modifiedPathString.equals(elementPathString))
-                                        && elementPathString.startsWith(modifiedPathString));
-    }
-
-    private static boolean skipAssertionCheck(
-            CtElement element, Set<String> newRevisionPathStrings) {
-        if (element == null || element.isImplicit() || !element.getPosition().isValidPosition()) {
-            return true;
+        @Override
+        public void scan(CtElement element) {
+            if (!skipAssertionCheck(element, newRevisionPathStrings)) {
+                String elementPathString = element.getPath().toString();
+                if (newRevisionPathStrings.contains(elementPathString)
+                        || doesElementBelongToModifiedSet(element)) {
+                    assertTrue(
+                            doesElementBelongToSpecifiedFile(element, AppTest.NEW_PREFIX),
+                            "Element should originate from new file but does not");
+                } else {
+                    assertTrue(
+                            doesElementBelongToSpecifiedFile(element, AppTest.PREV_PREFIX),
+                            "Element should originate from prev file but does not");
+                }
+            }
+            super.scan(element);
         }
-        String elementPathString = element.getPath().toString();
-        return isChildOfInsertedPath(elementPathString, newRevisionPathStrings);
+
+        private static boolean doesElementBelongToSpecifiedFile(
+                CtElement element, String filePathPrefix) {
+            return element.getPosition().getFile().getName().startsWith(filePathPrefix);
+        }
+
+        private static boolean doesElementBelongToModifiedSet(CtElement element) {
+            if (element.getRoleInParent() == CtRole.THROWN) {
+                return ((CtExecutable<?>) element.getParent())
+                        .getThrownTypes().stream()
+                                .anyMatch(
+                                        thrownType ->
+                                                doesElementBelongToSpecifiedFile(
+                                                        thrownType, AppTest.NEW_PREFIX));
+            }
+            return false;
+        }
+
+        private static boolean isChildOfInsertedPath(
+                String elementPathString, Set<String> newRevisionPathStrings) {
+            return newRevisionPathStrings.stream()
+                    .anyMatch(
+                            modifiedPathString ->
+                                    !(modifiedPathString.equals(elementPathString))
+                                            && elementPathString.startsWith(modifiedPathString));
+        }
+
+        private static boolean skipAssertionCheck(
+                CtElement element, Set<String> newRevisionPathStrings) {
+            if (element == null
+                    || element.isImplicit()
+                    || !element.getPosition().isValidPosition()) {
+                return true;
+            }
+            String elementPathString = element.getPath().toString();
+            return isChildOfInsertedPath(elementPathString, newRevisionPathStrings);
+        }
     }
 
     private static void runTests(TestResources sources) throws Exception {
@@ -268,28 +297,7 @@ public class AppTest {
         }
 
         // check the root origination of each element
-        Set<String> newRevisionPathStrings =
-                new HashSet<>(Files.readAllLines(sources.newRevisionPaths));
-
-        (new CtScanner() {
-                    @Override
-                    public void scan(CtElement element) {
-                        if (!skipAssertionCheck(element, newRevisionPathStrings)) {
-                            String elementPathString = element.getPath().toString();
-                            if (newRevisionPathStrings.contains(elementPathString)
-                                    || doesElementBelongToModifiedSet(element)) {
-                                assertTrue(
-                                        doesElementBelongToSpecifiedFile(element, NEW_PREFIX),
-                                        "Element should originate from new file but does not");
-                            } else {
-                                assertTrue(
-                                        doesElementBelongToSpecifiedFile(element, PREV_PREFIX),
-                                        "Element should originate from prev file but does not");
-                            }
-                        }
-                        super.scan(element);
-                    }
-                })
+        new ElementSourceFileChecker(new HashSet<>(Files.readAllLines(sources.newRevisionPaths)))
                 .scan(patchedCtModel.getRootPackage());
     }
 }
