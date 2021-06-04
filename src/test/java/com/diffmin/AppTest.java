@@ -61,7 +61,7 @@ public class AppTest {
 
         public Path newPath; // stylised new
 
-        public Path testMetadata;
+        public Path newRevisionPaths;
 
         /**
          * Constructor of {@link TestResources}.
@@ -69,14 +69,14 @@ public class AppTest {
          * @param prevPath path of the previous version of a file
          * @param newPath path of the new version of a file
          * @param parent name of the directory containing the two files
-         * @param testMetadata path to the file which contains {@link spoon.reflect.path.CtPath}
+         * @param newRevisionPaths path to the file which contains {@link spoon.reflect.path.CtPath}
          *     corresponding to elements in latest revision
          */
-        TestResources(Path prevPath, Path newPath, String parent, Path testMetadata) {
+        TestResources(Path prevPath, Path newPath, String parent, Path newRevisionPaths) {
             this.prevPath = prevPath;
             this.newPath = newPath;
             this.parent = parent;
-            this.testMetadata = testMetadata;
+            this.newRevisionPaths = newRevisionPaths;
         }
 
         /**
@@ -209,6 +209,41 @@ public class AppTest {
         runTests(sources);
     }
 
+    private static boolean doesElementBelongToSpecifiedFile(
+            CtElement element, String filePathPrefix) {
+        return element.getPosition().getFile().getName().startsWith(filePathPrefix);
+    }
+
+    private static boolean doesElementBelongToModifiedSet(CtElement element) {
+        if (element.getRoleInParent() == CtRole.THROWN) {
+            return ((CtExecutable<?>) element.getParent())
+                    .getThrownTypes().stream()
+                            .anyMatch(
+                                    thrownType ->
+                                            doesElementBelongToSpecifiedFile(
+                                                    thrownType, NEW_PREFIX));
+        }
+        return false;
+    }
+
+    private static boolean isChildOfInsertedPath(
+            String elementPathString, Set<String> newRevisionPathStrings) {
+        return newRevisionPathStrings.stream()
+                .anyMatch(
+                        modifiedPathString ->
+                                !(modifiedPathString.equals(elementPathString))
+                                        && elementPathString.startsWith(modifiedPathString));
+    }
+
+    private static boolean skipAssertionCheck(
+            CtElement element, Set<String> newRevisionPathStrings) {
+        if (element == null || element.isImplicit() || !element.getPosition().isValidPosition()) {
+            return true;
+        }
+        String elementPathString = element.getPath().toString();
+        return isChildOfInsertedPath(elementPathString, newRevisionPathStrings);
+    }
+
     private static void runTests(TestResources sources) throws Exception {
         File f1 = sources.prevPath.toFile();
         File f2 = sources.newPath.toFile();
@@ -230,67 +265,31 @@ public class AppTest {
                             .getOrCreate(retrievedFirstType);
             String patchedProgram = SpoonUtil.displayModifiedModel(patchedCtModel);
             assertEquals(cu.prettyprint(), patchedProgram, "Prev file was not patched correctly");
-
         }
 
         // check the root origination of each element
-        Set<String> insertedLines = new HashSet<>(Files.readAllLines(sources.testMetadata));
+        Set<String> newRevisionPathStrings =
+                new HashSet<>(Files.readAllLines(sources.newRevisionPaths));
 
-        CtScanner scanner =
-                new CtScanner() {
-                    private boolean doesElementBelongToGivenFile(
-                            CtElement element, String prefix) {
-                        return element.getPosition().getFile().getName().startsWith(prefix);
-                    }
-
-                    /** Checks if any of the members of a set collection are modified. */
-                    private boolean isSetCollectionModified(CtElement element) {
-                        if (element.getRoleInParent() == CtRole.THROWN) {
-                            return ((CtExecutable<?>) element.getParent())
-                                    .getThrownTypes().stream()
-                                    .anyMatch(
-                                            thrownType ->
-                                                    doesElementBelongToGivenFile(
-                                                            thrownType, NEW_PREFIX));
-                        }
-                        return false;
-                    }
-
+        (new CtScanner() {
                     @Override
                     public void scan(CtElement element) {
-                        if (element != null
-                                && !element.isImplicit()
-                                && element.getPosition().isValidPosition()) {
-                            String pathString = element.getPath().toString();
-                            // Check if element is a child of an element corresponding to new
-                            // path
-                            if (insertedLines.stream()
-                                    .anyMatch(
-                                            line ->
-                                                    !(line.equals(pathString))
-                                                            && pathString.startsWith(line))) {
-                                return;
-                            }
-
-                            // Check if any of the path in metadata file match in patched
-                            // program
-                            if (insertedLines.contains(pathString)
-                                    || isSetCollectionModified(element)) {
+                        if (!skipAssertionCheck(element, newRevisionPathStrings)) {
+                            String elementPathString = element.getPath().toString();
+                            if (newRevisionPathStrings.contains(elementPathString)
+                                    || doesElementBelongToModifiedSet(element)) {
                                 assertTrue(
-                                        doesElementBelongToGivenFile(element, NEW_PREFIX),
+                                        doesElementBelongToSpecifiedFile(element, NEW_PREFIX),
                                         "Element should originate from new file but does not");
-                            }
-                            // Case when there is no entry of the path of the element in the
-                            // metadata file
-                            else {
+                            } else {
                                 assertTrue(
-                                        doesElementBelongToGivenFile(element, PREV_PREFIX),
+                                        doesElementBelongToSpecifiedFile(element, PREV_PREFIX),
                                         "Element should originate from prev file but does not");
                             }
                         }
                         super.scan(element);
                     }
-                };
-        scanner.scan(patchedCtModel.getRootPackage());
+                })
+                .scan(patchedCtModel.getRootPackage());
     }
 }
