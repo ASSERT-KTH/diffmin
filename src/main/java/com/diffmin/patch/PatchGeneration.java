@@ -8,6 +8,7 @@ import com.github.gumtreediff.actions.model.Move;
 import com.github.gumtreediff.actions.model.Update;
 import gumtree.spoon.diff.Diff;
 import gumtree.spoon.diff.operations.Operation;
+import gumtree.spoon.diff.operations.UpdateOperation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -47,10 +48,39 @@ public class PatchGeneration {
         return movePatches;
     }
 
+    @SuppressWarnings("rawtypes")
+    private List<Operation> getRootOperations(Diff diff) {
+        List<Operation> operations = diff.getRootOperations();
+        List<Operation> rootOperations = new ArrayList<>();
+
+        for (Operation<?> operation : operations) {
+            if (isRootOperation(operation, rootOperations)) {
+                rootOperations.add(operation);
+            }
+        }
+
+        return rootOperations;
+    }
+
+    @SuppressWarnings("rawtypes")
+    private boolean isRootOperation(Operation<?> operation, List<Operation> rootOperations) {
+        // assuming that insert, delete, and move root operations are correctly computed by
+        // gumtree-spoon-ast-diff
+        return !(operation instanceof UpdateOperation)
+                // excludes update operations if they are applied on node which is a descendant
+                // of another node and it is also being updated
+                || rootOperations.stream()
+                        .filter(UpdateOperation.class::isInstance)
+                        .map(Operation::getSrcNode)
+                        .noneMatch(
+                                rootOperationSrcNode ->
+                                        operation.getSrcNode().hasParent(rootOperationSrcNode));
+    }
+
     /** Generates the patches. */
     public void generatePatch(Diff diff) {
         @SuppressWarnings("rawtypes")
-        List<Operation> operations = diff.getRootOperations();
+        List<Operation> operations = getRootOperations(diff);
         SpoonMapping mapping = SpoonMapping.fromGumTreeMapping(diff.getMappingsComp());
         for (Operation<?> operation : operations) {
             if (operation.getAction() instanceof Delete) {

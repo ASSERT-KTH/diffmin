@@ -1,0 +1,8 @@
+#containedType[name=TreeTraversal]#method[signature=postOrder(TreeTraversal$TreeNode)]
+#containedType[name=TreeTraversal]#method[signature=preOrder(TreeTraversal$TreeNode)]
+#containedType[name=TreeTraversal]#nestedType[name=TreeNode]#constructor[signature=(int,TreeTraversal$TreeNode,TreeTraversal$TreeNode)]
+#containedType[name=TreeTraversal]#method[signature=levelOrder(TreeTraversal$TreeNode)]#body#statement[name=level]
+#containedType[name=TreeTraversal]#method[signature=inOrder(TreeTraversal$TreeNode)]#body#statement[index=0]
+#containedType[name=TreeTraversal]#nestedType[name=TreeNode]#constructor[signature=(int)]#body#statement[index=2]
+#containedType[name=TreeTraversal]#method[signature=levelOrder(TreeTraversal$TreeNode)]#body#statement[index=3]#body#statement[index=1]
+#containedType[name=TreeTraversal]#method[signature=levelOrder(TreeTraversal$TreeNode)]#body#statement[index=3]#body#statement[index=2]#body#statement[index=3]

@@ -1,10 +1,10 @@
 package com.diffmin;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import com.diffmin.util.SpoonUtil;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -17,7 +17,11 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import spoon.reflect.CtModel;
 import spoon.reflect.declaration.CtCompilationUnit;
+import spoon.reflect.declaration.CtElement;
+import spoon.reflect.declaration.CtExecutable;
 import spoon.reflect.declaration.CtType;
+import spoon.reflect.path.CtRole;
+import spoon.reflect.visitor.CtScanner;
 
 /** Unit test for simple App. */
 public class AppTest {
@@ -39,6 +43,8 @@ public class AppTest {
 
     private static final String NEW_PREFIX = "NEW";
 
+    private static final String TEST_METADATA = "new_revision_paths";
+
     private static Stream<? extends Arguments> getArgumentSourceStream(
             File testDir, Function<File, TestResources> sourceGetter) {
         return Arrays.stream(testDir.listFiles())
@@ -55,17 +61,22 @@ public class AppTest {
 
         public Path newPath; // stylised new
 
+        public Path newRevisionPaths;
+
         /**
          * Constructor of {@link TestResources}.
          *
          * @param prevPath path of the previous version of a file
          * @param newPath path of the new version of a file
          * @param parent name of the directory containing the two files
+         * @param newRevisionPaths path to the file which contains {@link spoon.reflect.path.CtPath}
+         *     corresponding to elements in latest revision
          */
-        TestResources(Path prevPath, Path newPath, String parent) {
+        TestResources(Path prevPath, Path newPath, String parent, Path newRevisionPaths) {
             this.prevPath = prevPath;
             this.newPath = newPath;
             this.parent = parent;
+            this.newRevisionPaths = newRevisionPaths;
         }
 
         /**
@@ -78,7 +89,8 @@ public class AppTest {
             String parent = testDir.getName();
             Path prevPath = getFilepathByPrefix(testDir, PREV_PREFIX);
             Path newPath = getFilepathByPrefix(testDir, NEW_PREFIX);
-            return new TestResources(prevPath, newPath, parent);
+            Path testMetadata = getFilepathByPrefix(testDir, TEST_METADATA);
+            return new TestResources(prevPath, newPath, parent, testMetadata);
         }
 
         /**
@@ -197,9 +209,75 @@ public class AppTest {
         runTests(sources);
     }
 
+    /** Scanner for checking source file of each element. */
+    static class ElementSourceFileChecker extends CtScanner {
+        private final Set<String> newRevisionPathStrings;
+
+        ElementSourceFileChecker(Set<String> newRevisionPathStrings) {
+            this.newRevisionPathStrings = newRevisionPathStrings;
+        }
+
+        @Override
+        public void scan(CtElement element) {
+            if (!skipAssertionCheck(element, newRevisionPathStrings)) {
+                String elementPathString = element.getPath().toString();
+                if (newRevisionPathStrings.contains(elementPathString)
+                        || doesElementBelongToModifiedSet(element)) {
+                    assertTrue(
+                            doesElementBelongToSpecifiedFile(element, AppTest.NEW_PREFIX),
+                            "Element should originate from new file but does not");
+                } else {
+                    assertTrue(
+                            doesElementBelongToSpecifiedFile(element, AppTest.PREV_PREFIX),
+                            "Element should originate from prev file but does not");
+                }
+            }
+            super.scan(element);
+        }
+
+        private static boolean doesElementBelongToSpecifiedFile(
+                CtElement element, String filePathPrefix) {
+            return element.getPosition().getFile().getName().startsWith(filePathPrefix);
+        }
+
+        private static boolean doesElementBelongToModifiedSet(CtElement element) {
+            if (element.getRoleInParent() == CtRole.THROWN) {
+                return ((CtExecutable<?>) element.getParent())
+                        .getThrownTypes().stream()
+                                .anyMatch(
+                                        thrownType ->
+                                                doesElementBelongToSpecifiedFile(
+                                                        thrownType, AppTest.NEW_PREFIX));
+            }
+            return false;
+        }
+
+        private static boolean isChildOfInsertedPath(
+                String elementPathString, Set<String> newRevisionPathStrings) {
+            return newRevisionPathStrings.stream()
+                    .anyMatch(
+                            modifiedPathString ->
+                                    !(modifiedPathString.equals(elementPathString))
+                                            && elementPathString.startsWith(modifiedPathString));
+        }
+
+        private static boolean skipAssertionCheck(
+                CtElement element, Set<String> newRevisionPathStrings) {
+            if (element == null
+                    || element.isImplicit()
+                    || !element.getPosition().isValidPosition()) {
+                return true;
+            }
+            String elementPathString = element.getPath().toString();
+            return isChildOfInsertedPath(elementPathString, newRevisionPathStrings);
+        }
+    }
+
     private static void runTests(TestResources sources) throws Exception {
         File f1 = sources.prevPath.toFile();
         File f2 = sources.newPath.toFile();
+
+        // check the structure
         CtModel patchedCtModel = Main.patchAndGenerateModel(f1, f2);
         CtModel expectedModel = SpoonUtil.buildModel(sources.newPath.toFile());
         Optional<CtType<?>> firstType = expectedModel.getAllTypes().stream().findFirst();
@@ -217,5 +295,9 @@ public class AppTest {
             String patchedProgram = SpoonUtil.displayModifiedModel(patchedCtModel);
             assertEquals(cu.prettyprint(), patchedProgram, "Prev file was not patched correctly");
         }
+
+        // check the root origination of each element
+        new ElementSourceFileChecker(new HashSet<>(Files.readAllLines(sources.newRevisionPaths)))
+                .scan(patchedCtModel.getRootPackage());
     }
 }

@@ -1,0 +1,2 @@
+#containedType[name=ThrownType]#method[signature=func()]#thrown[name=InstantiationError]
+#containedType[name=ThrownType]#method[signature=func()]#thrown[name=IllegalStateException]

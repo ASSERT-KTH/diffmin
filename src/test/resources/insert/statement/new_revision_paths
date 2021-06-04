@@ -1,0 +1,2 @@
+#containedType[name=Statement]#method[signature=main(java.lang.String[])]#body#statement[name=b]
+#containedType[name=Statement]#method[signature=main(java.lang.String[])]#body#statement[name=d]

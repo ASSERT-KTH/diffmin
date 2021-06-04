@@ -1,0 +1,3 @@
+#containedType[name=MultipleUpdates]#method[signature=subtract(int,int)]
+#containedType[name=MultipleUpdates]#method[signature=main(java.lang.String[])]#body#statement[name=y]
+#containedType[name=MultipleUpdates]#method[signature=main(java.lang.String[])]#body#statement[index=1]#argument[index=0]
