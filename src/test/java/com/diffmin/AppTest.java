@@ -35,9 +35,7 @@ public class AppTest {
 
     public static final Path PURE_MOVE_PATCHES = RESOURCES_BASE_DIR.resolve("move");
 
-    public static final Path DELETE_INSERT_PATCHES = RESOURCES_BASE_DIR.resolve("delete+insert");
-
-    public static final Path DELETE_UPDATE_PATCHES = RESOURCES_BASE_DIR.resolve("delete+update");
+    public static final Path MIX_OPERATION_PATCHES = RESOURCES_BASE_DIR.resolve("mix-operation");
 
     private static final String PREV_PREFIX = "PREV";
 
@@ -137,24 +135,6 @@ public class AppTest {
         }
     }
 
-    /** Provides test sources for scenarios where delete and insert patches are applied. */
-    public static class DeleteInsertPatches implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
-            return getArgumentSourceStream(
-                    DELETE_INSERT_PATCHES.toFile(), TestResources::fromTestDirectory);
-        }
-    }
-
-    /** Provides test sources for scenarios where delete and update patches are applied. */
-    public static class DeleteUpdatePatches implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
-            return getArgumentSourceStream(
-                    DELETE_UPDATE_PATCHES.toFile(), TestResources::fromTestDirectory);
-        }
-    }
-
     /** Provides test sources for scenarios where only insert patches are applied. */
     public static class PureInsertPatches implements ArgumentsProvider {
         @Override
@@ -173,6 +153,15 @@ public class AppTest {
         }
     }
 
+    /** Provides test sources for scenarios where a mix of operations is applied. */
+    public static class MixOperationPatches implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+            return getArgumentSourceStream(
+                    MIX_OPERATION_PATCHES.toFile(), TestResources::fromTestDirectory);
+        }
+    }
+
     @ParameterizedTest
     @ArgumentsSource(PureUpdatePatches.class)
     void should_apply_pure_update_patches(TestResources sources) throws Exception {
@@ -186,26 +175,20 @@ public class AppTest {
     }
 
     @ParameterizedTest
-    @ArgumentsSource(DeleteInsertPatches.class)
-    void should_apply_delete_insert_patches(TestResources sources) throws Exception {
-        runTests(sources);
-    }
-
-    @ParameterizedTest
-    @ArgumentsSource(DeleteUpdatePatches.class)
-    void should_apply_delete_update_patches(TestResources sources) throws Exception {
-        runTests(sources);
-    }
-
-    @ParameterizedTest
-    @ArgumentsSource(AppTest.PureInsertPatches.class)
+    @ArgumentsSource(PureInsertPatches.class)
     void should_apply_pure_insert_patches(TestResources sources) throws Exception {
         runTests(sources);
     }
 
     @ParameterizedTest
-    @ArgumentsSource(AppTest.PureMovePatches.class)
+    @ArgumentsSource(PureMovePatches.class)
     void should_apply_pure_move_patches(TestResources sources) throws Exception {
+        runTests(sources);
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(MixOperationPatches.class)
+    void should_apply_mix_operation_patches(TestResources sources) throws Exception {
         runTests(sources);
     }
 
