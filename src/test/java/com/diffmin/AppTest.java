@@ -196,15 +196,16 @@ public class AppTest {
 
     /** Scanner for checking source file of each element. */
     static class ElementSourceFileChecker extends CtScanner {
-        private final List<CtElement> newRevisions;
+        private final Set<CtElement> newRevisions;
 
         ElementSourceFileChecker(List<CtElement> newRevisions) {
-            this.newRevisions = newRevisions;
+            this.newRevisions = Collections.newSetFromMap(new IdentityHashMap<>());
+            this.newRevisions.addAll(newRevisions);
         }
 
         @Override
         public void scan(CtElement element) {
-            if (!skipAssertionCheck(element, newRevisions)) {
+            if (!skipAssertionCheck(element)) {
                 if (newRevisions.stream().anyMatch(modifiedElement -> modifiedElement == element)
                         || doesElementBelongToModifiedSet(element)) {
                     assertTrue(
@@ -236,18 +237,17 @@ public class AppTest {
             return false;
         }
 
-        private static boolean isChildOfInsertedPath(
-                CtElement element, List<CtElement> newRevisions) {
+        private boolean isChildOfInsertedPath(CtElement element) {
             return newRevisions.stream().anyMatch(element::hasParent);
         }
 
-        private static boolean skipAssertionCheck(CtElement element, List<CtElement> newRevisions) {
+        private boolean skipAssertionCheck(CtElement element) {
             if (element == null
                     || element.isImplicit()
                     || !element.getPosition().isValidPosition()) {
                 return true;
             }
-            return isChildOfInsertedPath(element, newRevisions);
+            return isChildOfInsertedPath(element);
         }
     }
 
