@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,6 +21,7 @@ import spoon.reflect.declaration.CtCompilationUnit;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtExecutable;
 import spoon.reflect.declaration.CtType;
+import spoon.reflect.path.CtPathStringBuilder;
 import spoon.reflect.path.CtRole;
 import spoon.reflect.visitor.CtScanner;
 
@@ -194,17 +196,17 @@ public class AppTest {
 
     /** Scanner for checking source file of each element. */
     static class ElementSourceFileChecker extends CtScanner {
-        private final Set<String> newRevisionPathStrings;
+        private final Set<CtElement> newRevisions;
 
-        ElementSourceFileChecker(Set<String> newRevisionPathStrings) {
-            this.newRevisionPathStrings = newRevisionPathStrings;
+        ElementSourceFileChecker(List<CtElement> newRevisions) {
+            this.newRevisions = Collections.newSetFromMap(new IdentityHashMap<>());
+            this.newRevisions.addAll(newRevisions);
         }
 
         @Override
         public void scan(CtElement element) {
-            if (!skipAssertionCheck(element, newRevisionPathStrings)) {
-                String elementPathString = element.getPath().toString();
-                if (newRevisionPathStrings.contains(elementPathString)
+            if (!skipAssertionCheck(element)) {
+                if (newRevisions.stream().anyMatch(modifiedElement -> modifiedElement == element)
                         || doesElementBelongToModifiedSet(element)) {
                     assertTrue(
                             doesElementBelongToSpecifiedFile(element, AppTest.NEW_PREFIX),
@@ -235,24 +237,17 @@ public class AppTest {
             return false;
         }
 
-        private static boolean isChildOfInsertedPath(
-                String elementPathString, Set<String> newRevisionPathStrings) {
-            return newRevisionPathStrings.stream()
-                    .anyMatch(
-                            modifiedPathString ->
-                                    !(modifiedPathString.equals(elementPathString))
-                                            && elementPathString.startsWith(modifiedPathString));
+        private boolean isChildOfInsertedPath(CtElement element) {
+            return newRevisions.stream().anyMatch(element::hasParent);
         }
 
-        private static boolean skipAssertionCheck(
-                CtElement element, Set<String> newRevisionPathStrings) {
+        private boolean skipAssertionCheck(CtElement element) {
             if (element == null
                     || element.isImplicit()
                     || !element.getPosition().isValidPosition()) {
                 return true;
             }
-            String elementPathString = element.getPath().toString();
-            return isChildOfInsertedPath(elementPathString, newRevisionPathStrings);
+            return isChildOfInsertedPath(element);
         }
     }
 
@@ -280,7 +275,11 @@ public class AppTest {
         }
 
         // check the root origination of each element
-        new ElementSourceFileChecker(new HashSet<>(Files.readAllLines(sources.newRevisionPaths)))
-                .scan(patchedCtModel.getRootPackage());
+        List<CtElement> newRevisions =
+                Files.readAllLines(sources.newRevisionPaths).stream()
+                        .map(pathString -> new CtPathStringBuilder().fromString(pathString))
+                        .map(path -> path.evaluateOn(patchedCtModel.getRootPackage()).get(0))
+                        .collect(Collectors.toList());
+        new ElementSourceFileChecker(newRevisions).scan(patchedCtModel.getRootPackage());
     }
 }
