@@ -74,13 +74,20 @@ public class SpoonUtil {
         return launcher.buildModel();
     }
 
-    public static String prettyPrintModel(CtModel model) {
+    /**
+     * Pretty-prints the model using the single compilation unit it has.
+     *
+     * @param model model to be pretty printed
+     * @return patched program
+     */
+    public static String prettyPrintModelWithSingleCompilationUnit(CtModel model) {
         List<CtCompilationUnit> compilationUnits =
                 List.copyOf(
                         model.getUnnamedModule().getFactory().CompilationUnit().getMap().values());
         if (compilationUnits.size() != 1) {
             throw new IllegalArgumentException(
-                    "There should be exactly one candidate for model's compilation unit");
+                    "Model should have exactly 1 compilation unit, but has - "
+                            + compilationUnits.size());
         }
         CtCompilationUnit modelCu = compilationUnits.get(0);
         // Note: Must explicitly create our configured pretty printer, as spoon-9.0.0 has that

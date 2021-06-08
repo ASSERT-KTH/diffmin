@@ -62,7 +62,8 @@ class StructureTest {
                             .getFactory()
                             .CompilationUnit()
                             .getOrCreate(retrievedFirstType);
-            String patchedProgram = SpoonUtil.prettyPrintModel(patchedCtModel);
+            String patchedProgram =
+                    SpoonUtil.prettyPrintModelWithSingleCompilationUnit(patchedCtModel);
             assertEquals(cu.prettyprint(), patchedProgram, "Prev file was not patched correctly");
         }
     }
