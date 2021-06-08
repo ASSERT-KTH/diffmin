@@ -4,6 +4,8 @@ import gumtree.spoon.AstComparator;
 import gumtree.spoon.diff.Diff;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.List;
+import java.util.stream.Collectors;
 import spoon.Launcher;
 import spoon.compiler.Environment;
 import spoon.compiler.SpoonResource;
@@ -73,19 +75,27 @@ public class SpoonUtil {
         return launcher.buildModel();
     }
 
-    /**
-     * Pretty prints the model.
-     *
-     * @param model model to be pretty printed
-     * @return patched program
-     */
-    public static String displayModifiedModel(CtModel model) {
-        CtType<?> firstType = model.getAllTypes().stream().findFirst().get();
-        CtCompilationUnit cu = firstType.getFactory().CompilationUnit().getOrCreate(firstType);
+    public static String prettyPrintModel(CtModel model) {
+        List<CtCompilationUnit> compilationUnits =
+                List.copyOf(
+                        model.getUnnamedModule().getFactory().CompilationUnit().getMap().values());
+        List<CtCompilationUnit> modelCuCandidates =
+                compilationUnits.stream()
+                        .filter(cu -> !cu.getFile().getName().equals("package-info.java"))
+                        .collect(Collectors.toList());
+        if (modelCuCandidates.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Model does not have a compilation unit after excluding the package-info.java file");
+        }
+        if (modelCuCandidates.size() != 1) {
+            throw new IllegalArgumentException(
+                    "There should be exactly one candidate for model's compilation unit");
+        }
+        CtCompilationUnit modelCu = modelCuCandidates.get(0);
         // Note: Must explicitly create our configured pretty printer, as spoon-9.0.0 has that
         // CompilationUnit.prettyprint() always uses the auto-import pretty-printer, and not
         // our custom configured one.
-        PrettyPrinter printer = cu.getFactory().getEnvironment().createPrettyPrinter();
-        return printer.prettyprint(cu);
+        PrettyPrinter printer = modelCu.getFactory().getEnvironment().createPrettyPrinter();
+        return printer.prettyprint(modelCu);
     }
 }
