@@ -1,6 +1,7 @@
 package com.diffmin.patch;
 
 import com.diffmin.util.Pair;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -82,17 +83,23 @@ public class PatchApplication {
                 ((CtPackage) inWhichElement).addType((CtType<?>) toBeInserted.clone());
 
                 // Inserting into CtCompilationUnit
-                CtCompilationUnit cu =
-                        inWhichElement
-                                .getFactory()
-                                .CompilationUnit()
-                                .getOrCreate((CtPackage) inWhichElement);
-                List<CtType<?>> types = cu.getDeclaredTypes();
-                if (types.isEmpty()) {
-                    cu.addDeclaredType((CtType<?>) toBeInserted);
-                } else {
-                    types.add(where, (CtType<?>) toBeInserted);
+                List<CtCompilationUnit> compilationUnits =
+                        List.copyOf(
+                                ((CtPackage) inWhichElement)
+                                        .getDeclaringModule()
+                                        .getFactory()
+                                        .CompilationUnit()
+                                        .getMap()
+                                        .values());
+                if (compilationUnits.size() != 1) {
+                    throw new IllegalArgumentException(
+                            "Model should have exactly 1 compilation unit, but has - "
+                                    + compilationUnits.size());
                 }
+                CtCompilationUnit cu = compilationUnits.get(0);
+                List<CtType<?>> types = new ArrayList<>(cu.getDeclaredTypes());
+                types.add(where, (CtType<?>) toBeInserted);
+                cu.setDeclaredTypes(types);
                 break;
             default:
                 inWhichElement.setValueByRole(toBeInserted.getRoleInParent(), toBeInserted);
