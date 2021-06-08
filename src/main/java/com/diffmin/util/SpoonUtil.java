@@ -4,6 +4,7 @@ import gumtree.spoon.AstComparator;
 import gumtree.spoon.diff.Diff;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.List;
 import spoon.Launcher;
 import spoon.compiler.Environment;
 import spoon.compiler.SpoonResource;
@@ -74,18 +75,25 @@ public class SpoonUtil {
     }
 
     /**
-     * Pretty prints the model.
+     * Pretty-prints the model using the single compilation unit it has.
      *
      * @param model model to be pretty printed
      * @return patched program
      */
-    public static String displayModifiedModel(CtModel model) {
-        CtType<?> firstType = model.getAllTypes().stream().findFirst().get();
-        CtCompilationUnit cu = firstType.getFactory().CompilationUnit().getOrCreate(firstType);
+    public static String prettyPrintModelWithSingleCompilationUnit(CtModel model) {
+        List<CtCompilationUnit> compilationUnits =
+                List.copyOf(
+                        model.getUnnamedModule().getFactory().CompilationUnit().getMap().values());
+        if (compilationUnits.size() != 1) {
+            throw new IllegalArgumentException(
+                    "Model should have exactly 1 compilation unit, but has - "
+                            + compilationUnits.size());
+        }
+        CtCompilationUnit modelCu = compilationUnits.get(0);
         // Note: Must explicitly create our configured pretty printer, as spoon-9.0.0 has that
         // CompilationUnit.prettyprint() always uses the auto-import pretty-printer, and not
         // our custom configured one.
-        PrettyPrinter printer = cu.getFactory().getEnvironment().createPrettyPrinter();
-        return printer.prettyprint(cu);
+        PrettyPrinter printer = modelCu.getFactory().getEnvironment().createPrettyPrinter();
+        return printer.prettyprint(modelCu);
     }
 }
