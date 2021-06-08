@@ -48,7 +48,7 @@ class Main {
             System.exit(1);
         }
         CtModel patchedCtModel = Main.patchAndGenerateModel(new File(args[0]), new File(args[1]));
-        System.out.println(SpoonUtil.displayModifiedModel(patchedCtModel));
+        System.out.println(SpoonUtil.prettyPrintModelWithSingleCompilationUnit(patchedCtModel));
         System.exit(0);
     }
 }
