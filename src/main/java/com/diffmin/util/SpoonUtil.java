@@ -5,7 +5,6 @@ import gumtree.spoon.diff.Diff;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
-import java.util.stream.Collectors;
 import spoon.Launcher;
 import spoon.compiler.Environment;
 import spoon.compiler.SpoonResource;
@@ -79,19 +78,11 @@ public class SpoonUtil {
         List<CtCompilationUnit> compilationUnits =
                 List.copyOf(
                         model.getUnnamedModule().getFactory().CompilationUnit().getMap().values());
-        List<CtCompilationUnit> modelCuCandidates =
-                compilationUnits.stream()
-                        .filter(cu -> !cu.getFile().getName().equals("package-info.java"))
-                        .collect(Collectors.toList());
-        if (modelCuCandidates.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Model does not have a compilation unit after excluding the package-info.java file");
-        }
-        if (modelCuCandidates.size() != 1) {
+        if (compilationUnits.size() != 1) {
             throw new IllegalArgumentException(
                     "There should be exactly one candidate for model's compilation unit");
         }
-        CtCompilationUnit modelCu = modelCuCandidates.get(0);
+        CtCompilationUnit modelCu = compilationUnits.get(0);
         // Note: Must explicitly create our configured pretty printer, as spoon-9.0.0 has that
         // CompilationUnit.prettyprint() always uses the auto-import pretty-printer, and not
         // our custom configured one.
