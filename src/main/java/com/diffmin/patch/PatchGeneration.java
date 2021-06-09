@@ -2,6 +2,7 @@ package com.diffmin.patch;
 
 import com.diffmin.SpoonMapping;
 import com.diffmin.util.Pair;
+import com.diffmin.util.SpoonUtil;
 import com.github.gumtreediff.actions.model.Delete;
 import com.github.gumtreediff.actions.model.Insert;
 import com.github.gumtreediff.actions.model.Move;
@@ -139,10 +140,7 @@ public class PatchGeneration {
                             case PARAMETER:
                                 return ((CtExecutable<?>) element.getParent()).getParameters();
                             case CONTAINED_TYPE:
-                                CtCompilationUnit cu =
-                                        element.getFactory()
-                                                .CompilationUnit()
-                                                .getOrCreate((CtType<?>) element);
+                                CtCompilationUnit cu = SpoonUtil.getTheOnlyCompilationUnit(element);
                                 return cu.getDeclaredTypes();
                             default:
                                 throw new UnsupportedOperationException(
