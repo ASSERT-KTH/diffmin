@@ -74,6 +74,27 @@ public class SpoonUtil {
         return launcher.buildModel();
     }
 
+    private static List<CtCompilationUnit> getAllCompilationUnits(CtElement element) {
+        return List.copyOf(
+                element.getParent(CtModule.class).getFactory().CompilationUnit().getMap().values());
+    }
+
+    /**
+     * Returns the only compilation unit built while the model is created.
+     *
+     * @param element element whose corresponding compilation unit is needed
+     * @return the compilation unit corresponding to the only file with which the model was built
+     */
+    public static CtCompilationUnit getTheOnlyCompilationUnit(CtElement element) {
+        List<CtCompilationUnit> compilationUnits = getAllCompilationUnits(element);
+        if (compilationUnits.size() != 1) {
+            throw new IllegalArgumentException(
+                    "Model should have exactly 1 compilation unit, but has - "
+                            + compilationUnits.size());
+        }
+        return compilationUnits.get(0);
+    }
+
     /**
      * Pretty-prints the model using the single compilation unit it has.
      *
