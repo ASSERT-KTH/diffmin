@@ -1,6 +1,8 @@
 package com.diffmin.patch;
 
 import com.diffmin.util.Pair;
+import com.diffmin.util.SpoonUtil;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -76,6 +78,17 @@ public class PatchApplication {
                         new HashSet<>(
                                 ((CtExecutable<?>) toBeInserted.getParent()).getThrownTypes());
                 ((CtExecutable<?>) inWhichElement).setThrownTypes(thrownTypesCopy);
+                break;
+            case CONTAINED_TYPE:
+                // Inserting into CtPackage
+                ((CtPackage) inWhichElement).addType((CtType<?>) toBeInserted.clone());
+
+                // Inserting into CtCompilationUnit
+                CtCompilationUnit inWhichCompilationUnit =
+                        SpoonUtil.getTheOnlyCompilationUnit(inWhichElement);
+                List<CtType<?>> types = new ArrayList<>(inWhichCompilationUnit.getDeclaredTypes());
+                types.add(where, (CtType<?>) toBeInserted);
+                inWhichCompilationUnit.setDeclaredTypes(types);
                 break;
             default:
                 inWhichElement.setValueByRole(toBeInserted.getRoleInParent(), toBeInserted);
