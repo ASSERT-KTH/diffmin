@@ -1,1 +1,2 @@
 #containedType[name=TypeParameter]#typeParameter[name=A]
+#containedType[name=TypeParameter]#method[signature=doNothing()]#typeParameter[name=K]
