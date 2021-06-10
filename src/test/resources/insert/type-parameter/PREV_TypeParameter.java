@@ -1,1 +1,3 @@
-class TypeParameter<B> { }
+class TypeParameter<B> {
+    public <V> void doNothing() { }
+}

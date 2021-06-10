@@ -66,7 +66,7 @@ public class PatchApplication {
                 ((CtClass<?>) inWhichElement).addTypeMemberAt(where, (CtTypeMember) toBeInserted);
                 break;
             case TYPE_PARAMETER:
-                ((CtClass<?>) inWhichElement)
+                ((CtFormalTypeDeclarer) inWhichElement)
                         .addFormalCtTypeParameterAt(where, (CtTypeParameter) toBeInserted);
                 break;
             case PARAMETER:
