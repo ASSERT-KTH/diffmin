@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
-import spoon.reflect.code.CtInvocation;
+import spoon.reflect.code.CtAbstractInvocation;
 import spoon.reflect.code.CtStatementList;
 import spoon.reflect.declaration.*;
 import spoon.reflect.path.CtRole;
@@ -131,7 +131,8 @@ public class PatchGeneration {
                             case STATEMENT:
                                 return ((CtStatementList) element.getParent()).getStatements();
                             case ARGUMENT:
-                                return ((CtInvocation<?>) element.getParent()).getArguments();
+                                return ((CtAbstractInvocation<?>) element.getParent())
+                                        .getArguments();
                             case TYPE_MEMBER:
                                 return ((CtClass<?>) element.getParent()).getTypeMembers();
                             case TYPE_PARAMETER:

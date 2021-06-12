@@ -7,8 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
+import spoon.reflect.code.CtAbstractInvocation;
 import spoon.reflect.code.CtExpression;
-import spoon.reflect.code.CtInvocation;
 import spoon.reflect.code.CtStatement;
 import spoon.reflect.code.CtStatementList;
 import spoon.reflect.declaration.*;
@@ -59,7 +59,7 @@ public class PatchApplication {
                         .addStatement(where, (CtStatement) toBeInserted.clone());
                 break;
             case ARGUMENT:
-                ((CtInvocation<?>) inWhichElement)
+                ((CtAbstractInvocation<?>) inWhichElement)
                         .addArgumentAt(where, (CtExpression<?>) toBeInserted);
                 break;
             case TYPE_MEMBER:
