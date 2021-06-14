@@ -1,0 +1,2 @@
+#containedType[name=Arguments]#field[name=z]
+#containedType[name=Arguments]#method[signature=add()]#body#statement[name=add]#defaultExpression#argument[index=2]
