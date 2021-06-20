@@ -1,0 +1,2 @@
+#containedType[name=Shape]#method[signature=getPerimeter()]
+#containedType[name=Square]#method[signature=getPerimeter()]
