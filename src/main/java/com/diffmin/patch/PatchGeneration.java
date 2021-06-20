@@ -134,7 +134,7 @@ public class PatchGeneration {
                                 return ((CtAbstractInvocation<?>) element.getParent())
                                         .getArguments();
                             case TYPE_MEMBER:
-                                return ((CtClass<?>) element.getParent()).getTypeMembers();
+                                return ((CtType<?>) element.getParent()).getTypeMembers();
                             case TYPE_PARAMETER:
                                 return ((CtFormalTypeDeclarer) element.getParent())
                                         .getFormalCtTypeParameters();
