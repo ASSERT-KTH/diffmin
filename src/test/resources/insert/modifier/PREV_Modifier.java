@@ -1,7 +1,7 @@
-class FinalModifier {
+class Modifier {
     public int x;
     protected int y;
-    private int z;
+    static int z;
 
     public void doNothing() { }
 }
