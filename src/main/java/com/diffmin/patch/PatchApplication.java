@@ -63,7 +63,7 @@ public class PatchApplication {
                         .addArgumentAt(where, (CtExpression<?>) toBeInserted);
                 break;
             case TYPE_MEMBER:
-                ((CtClass<?>) inWhichElement).addTypeMemberAt(where, (CtTypeMember) toBeInserted);
+                ((CtType<?>) inWhichElement).addTypeMemberAt(where, (CtTypeMember) toBeInserted);
                 break;
             case TYPE_PARAMETER:
                 ((CtFormalTypeDeclarer) inWhichElement)
