@@ -2,6 +2,8 @@ package com.diffmin.patch;
 
 import com.diffmin.util.Pair;
 import com.diffmin.util.SpoonUtil;
+import gumtree.spoon.builder.CtVirtualElement;
+import gumtree.spoon.builder.CtWrapper;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -89,6 +91,16 @@ public class PatchApplication {
                 List<CtType<?>> types = new ArrayList<>(inWhichCompilationUnit.getDeclaredTypes());
                 types.add(where, (CtType<?>) toBeInserted);
                 inWhichCompilationUnit.setDeclaredTypes(types);
+                break;
+            case MODIFIER:
+                if (toBeInserted instanceof CtVirtualElement) {
+                    //                    ((CtTypeMember)
+                    // inWhichElement).setModifiers(((CtVirtualElement)
+                    // toBeInserted).getChildren());
+                } else {
+                    ((CtTypeMember) inWhichElement)
+                            .addModifier((ModifierKind) ((CtWrapper<?>) toBeInserted).getValue());
+                }
                 break;
             default:
                 inWhichElement.setValueByRole(toBeInserted.getRoleInParent(), toBeInserted);
