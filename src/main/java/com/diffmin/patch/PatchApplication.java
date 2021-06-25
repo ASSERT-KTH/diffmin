@@ -94,9 +94,11 @@ public class PatchApplication {
                 break;
             case MODIFIER:
                 if (toBeInserted instanceof CtVirtualElement) {
-                    //                    ((CtTypeMember)
-                    // inWhichElement).setModifiers(((CtVirtualElement)
-                    // toBeInserted).getChildren());
+                    Set<ModifierKind> newModifiers = new HashSet<>();
+                    for (Object modifierKind : ((CtVirtualElement) toBeInserted).getChildren()) {
+                        newModifiers.add((ModifierKind) modifierKind);
+                    }
+                    ((CtTypeMember) inWhichElement).setModifiers(newModifiers);
                 } else {
                     ((CtTypeMember) inWhichElement)
                             .addModifier((ModifierKind) ((CtWrapper<?>) toBeInserted).getValue());
