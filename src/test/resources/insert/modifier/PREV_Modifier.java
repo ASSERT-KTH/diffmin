@@ -3,5 +3,7 @@ class Modifier {
     protected int y;
     static int z;
 
-    public void doNothing() { }
+    public void doNothing() {
+        int x = 10;
+    }
 }

@@ -98,9 +98,9 @@ public class PatchApplication {
                     for (Object modifierKind : ((CtVirtualElement) toBeInserted).getChildren()) {
                         newModifiers.add((ModifierKind) modifierKind);
                     }
-                    ((CtTypeMember) inWhichElement).setModifiers(newModifiers);
+                    ((CtModifiable) inWhichElement).setModifiers(newModifiers);
                 } else {
-                    ((CtTypeMember) inWhichElement)
+                    ((CtModifiable) inWhichElement)
                             .addModifier((ModifierKind) ((CtWrapper<?>) toBeInserted).getValue());
                 }
                 break;
