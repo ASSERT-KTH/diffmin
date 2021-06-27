@@ -12,5 +12,11 @@ class Case {
                 System.out.println("Fraction");
                 break;
         }
+
+        switch (x % 3) {
+            default:
+                System.out.println("Checking for divisibility by 3");
+                break;
+        }
     }
 }

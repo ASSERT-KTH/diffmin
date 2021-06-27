@@ -9,5 +9,7 @@ class Case {
                 System.out.println("Fraction");
                 break;
         }
+
+        switch (x % 3) { }
     }
 }
