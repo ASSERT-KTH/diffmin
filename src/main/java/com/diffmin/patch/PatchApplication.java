@@ -7,10 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
-import spoon.reflect.code.CtAbstractInvocation;
-import spoon.reflect.code.CtExpression;
-import spoon.reflect.code.CtStatement;
-import spoon.reflect.code.CtStatementList;
+import spoon.reflect.code.*;
 import spoon.reflect.declaration.*;
 import spoon.reflect.reference.CtTypeReference;
 
@@ -47,6 +44,7 @@ public class PatchApplication {
     }
 
     /** Apply the insert patch. */
+    @SuppressWarnings("unchecked")
     private static void performInsertion(
             ImmutableTriple<Integer, CtElement, CtElement> insertPatch) {
         int where = insertPatch.left;
@@ -89,6 +87,16 @@ public class PatchApplication {
                 List<CtType<?>> types = new ArrayList<>(inWhichCompilationUnit.getDeclaredTypes());
                 types.add(where, (CtType<?>) toBeInserted);
                 inWhichCompilationUnit.setDeclaredTypes(types);
+                break;
+            case CASE:
+                List<CtCase<? super Object>> cases =
+                        ((CtAbstractSwitch<Object>) inWhichElement).getCases();
+                if (cases.isEmpty()) {
+                    ((CtAbstractSwitch<Object>) inWhichElement)
+                            .addCase((CtCase<? super Object>) toBeInserted);
+                } else {
+                    cases.add(where, (CtCase<? super Object>) toBeInserted);
+                }
                 break;
             default:
                 inWhichElement.setValueByRole(toBeInserted.getRoleInParent(), toBeInserted);
