@@ -18,5 +18,11 @@ class Case {
                 System.out.println("Checking for divisibility by 3");
                 break;
         }
+
+        int y = switch (x) {
+            case 1 -> 10;
+            case 2 -> 20;
+            default -> 30;
+        };
     }
 }

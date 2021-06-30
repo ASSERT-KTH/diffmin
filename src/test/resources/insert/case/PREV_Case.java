@@ -11,5 +11,10 @@ class Case {
         }
 
         switch (x % 3) { }
+
+        int y = switch (x) {
+            case 1 -> 10;
+            default -> 30;
+        };
     }
 }
