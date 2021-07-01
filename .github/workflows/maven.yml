@@ -42,7 +42,9 @@ jobs:
       with:
         java-version: 11
     - name: Style check
-      run: 'mvn spotless:check'
+      run: |
+        mvn spotless:check
+        mvn checkstyle:check
     - name: Run test phase
       run: mvn test
     - name: Upload coverage report to Codecov
