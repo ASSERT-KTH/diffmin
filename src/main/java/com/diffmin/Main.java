@@ -9,7 +9,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import spoon.reflect.CtModel;
 
-/** Main execution of generating and applying patch */
+/** Main execution of generating and applying patch. */
 class Main {
 
     /**
