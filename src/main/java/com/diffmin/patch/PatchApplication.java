@@ -91,7 +91,8 @@ public class PatchApplication {
                 inWhichCompilationUnit.setDeclaredTypes(types);
                 break;
             case CASE:
-                ((CtAbstractSwitch<Object>) inWhichElement).addCaseAt(where, (CtCase<? super Object>) toBeInserted);
+                ((CtAbstractSwitch<Object>) inWhichElement)
+                        .addCaseAt(where, (CtCase<? super Object>) toBeInserted);
                 break;
             case MODIFIER:
                 if (toBeInserted instanceof CtVirtualElement) {
