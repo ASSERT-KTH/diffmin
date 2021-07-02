@@ -17,7 +17,11 @@ import org.apache.commons.lang3.tuple.ImmutableTriple;
 import spoon.reflect.code.CtAbstractInvocation;
 import spoon.reflect.code.CtAbstractSwitch;
 import spoon.reflect.code.CtStatementList;
-import spoon.reflect.declaration.*;
+import spoon.reflect.declaration.CtCompilationUnit;
+import spoon.reflect.declaration.CtElement;
+import spoon.reflect.declaration.CtExecutable;
+import spoon.reflect.declaration.CtFormalTypeDeclarer;
+import spoon.reflect.declaration.CtType;
 import spoon.reflect.path.CtRole;
 
 /** Class for generating patches. */

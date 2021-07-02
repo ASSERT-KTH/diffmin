@@ -41,8 +41,10 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 11
-    - name: Style check
+    - name: Style check using spotless
       run: 'mvn spotless:check'
+    - name: Style check using checkstyle
+      run: 'mvn checkstyle:check'
     - name: Run test phase
       run: mvn test
     - name: Upload coverage report to Codecov

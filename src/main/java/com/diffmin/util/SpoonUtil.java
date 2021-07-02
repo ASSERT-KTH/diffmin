@@ -10,7 +10,10 @@ import spoon.compiler.Environment;
 import spoon.compiler.SpoonResource;
 import spoon.compiler.SpoonResourceHelper;
 import spoon.reflect.CtModel;
-import spoon.reflect.declaration.*;
+import spoon.reflect.declaration.CtCompilationUnit;
+import spoon.reflect.declaration.CtElement;
+import spoon.reflect.declaration.CtModule;
+import spoon.reflect.declaration.CtPackage;
 import spoon.reflect.visitor.DefaultJavaPrettyPrinter;
 import spoon.reflect.visitor.PrettyPrinter;
 
