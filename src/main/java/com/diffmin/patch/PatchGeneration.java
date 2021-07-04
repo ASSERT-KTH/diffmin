@@ -16,6 +16,7 @@ import java.util.stream.IntStream;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import spoon.reflect.code.CtAbstractInvocation;
 import spoon.reflect.code.CtAbstractSwitch;
+import spoon.reflect.code.CtCase;
 import spoon.reflect.code.CtStatementList;
 import spoon.reflect.declaration.CtCompilationUnit;
 import spoon.reflect.declaration.CtElement;
@@ -150,6 +151,8 @@ public class PatchGeneration {
                                 return cu.getDeclaredTypes();
                             case CASE:
                                 return ((CtAbstractSwitch<?>) element.getParent()).getCases();
+                            case EXPRESSION:
+                                return ((CtCase<?>) element.getParent()).getCaseExpressions();
                             default:
                                 throw new UnsupportedOperationException(
                                         "Unsupported role: " + element.getRoleInParent());

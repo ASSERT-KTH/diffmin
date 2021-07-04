@@ -121,6 +121,16 @@ public class PatchApplication {
                 ((CtAbstractSwitch<Object>) inWhichElement)
                         .addCaseAt(where, (CtCase<? super Object>) toBeInserted);
                 break;
+            case EXPRESSION:
+                List<CtExpression<Object>> caseExpressions =
+                        ((CtCase<Object>) inWhichElement).getCaseExpressions();
+                if (caseExpressions.isEmpty()) {
+                    ((CtCase<Object>) inWhichElement)
+                            .addCaseExpression((CtExpression<Object>) toBeInserted);
+                } else {
+                    caseExpressions.add(where, (CtExpression<Object>) toBeInserted);
+                }
+                break;
             default:
                 inWhichElement.setValueByRole(toBeInserted.getRoleInParent(), toBeInserted);
                 break;
