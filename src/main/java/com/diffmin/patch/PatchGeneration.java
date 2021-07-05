@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import spoon.reflect.code.CtAbstractInvocation;
+import spoon.reflect.code.CtAbstractSwitch;
 import spoon.reflect.code.CtStatementList;
 import spoon.reflect.declaration.CtCompilationUnit;
 import spoon.reflect.declaration.CtElement;
@@ -147,6 +148,8 @@ public class PatchGeneration {
                             case CONTAINED_TYPE:
                                 CtCompilationUnit cu = SpoonUtil.getTheOnlyCompilationUnit(element);
                                 return cu.getDeclaredTypes();
+                            case CASE:
+                                return ((CtAbstractSwitch<?>) element.getParent()).getCases();
                             default:
                                 throw new UnsupportedOperationException(
                                         "Unsupported role: " + element.getRoleInParent());

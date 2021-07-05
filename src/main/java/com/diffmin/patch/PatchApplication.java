@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import spoon.reflect.code.CtAbstractInvocation;
+import spoon.reflect.code.CtAbstractSwitch;
+import spoon.reflect.code.CtCase;
 import spoon.reflect.code.CtExpression;
 import spoon.reflect.code.CtStatement;
 import spoon.reflect.code.CtStatementList;
@@ -59,6 +61,7 @@ public class PatchApplication {
     }
 
     /** Apply the insert patch. */
+    @SuppressWarnings("unchecked")
     private static void performInsertion(
             ImmutableTriple<Integer, CtElement, CtElement> insertPatch) {
         int where = insertPatch.left;
@@ -113,6 +116,10 @@ public class PatchApplication {
                     ((CtModifiable) inWhichElement)
                             .addModifier((ModifierKind) ((CtWrapper<?>) toBeInserted).getValue());
                 }
+                break;
+            case CASE:
+                ((CtAbstractSwitch<Object>) inWhichElement)
+                        .addCaseAt(where, (CtCase<? super Object>) toBeInserted);
                 break;
             default:
                 inWhichElement.setValueByRole(toBeInserted.getRoleInParent(), toBeInserted);
