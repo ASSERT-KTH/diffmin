@@ -153,6 +153,8 @@ public class PatchGeneration {
                                 return ((CtAbstractSwitch<?>) element.getParent()).getCases();
                             case EXPRESSION:
                                 return ((CtCase<?>) element.getParent()).getCaseExpressions();
+                            case ANNOTATION:
+                                return element.getParent().getAnnotations();
                             default:
                                 throw new UnsupportedOperationException(
                                         "Unsupported role: " + element.getRoleInParent());
