@@ -134,7 +134,8 @@ public class PatchApplication {
                 break;
             case ANNOTATION:
                 // it is necessary to copy annotations because it returns an unmodifiable list
-                List<CtAnnotation<?>> annotations = new ArrayList<>(inWhichElement.getAnnotations());
+                List<CtAnnotation<?>> annotations =
+                        new ArrayList<>(inWhichElement.getAnnotations());
                 annotations.add(where, (CtAnnotation<?>) toBeInserted);
                 inWhichElement.setAnnotations(annotations);
                 break;
