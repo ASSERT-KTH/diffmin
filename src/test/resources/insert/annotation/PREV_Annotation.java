@@ -1,8 +1,6 @@
-interface INothing {
-    public void doNothing();
-}
-
-class Annotation implements INothing {
+class Annotation {
     @Deprecated
-    public void doNothing() { }
+    public String toString() {
+        return "";
+    }
 }

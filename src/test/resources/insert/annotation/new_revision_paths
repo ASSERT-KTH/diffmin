@@ -1,2 +1,2 @@
-#containedType[name=Annotation]#method[signature=doNothing()]#annotation[index=0]
-#containedType[name=Annotation]#method[signature=doNothing()]#annotation[index=2]
+#containedType[name=Annotation]#method[signature=toString()]#annotation[index=0]
+#containedType[name=Annotation]#method[signature=toString()]#annotation[index=2]

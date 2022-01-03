@@ -1,10 +1,8 @@
-interface INothing {
-    public void doNothing();
-}
-
-class Annotation implements INothing {
+class Annotation {
     @Override
     @Deprecated
     @SuppressWarnings("unchecked")
-    public void doNothing() { }
+    public String toString() {
+        return "";
+    }
 }
