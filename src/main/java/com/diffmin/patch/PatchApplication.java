@@ -15,6 +15,7 @@ import spoon.reflect.code.CtCase;
 import spoon.reflect.code.CtExpression;
 import spoon.reflect.code.CtStatement;
 import spoon.reflect.code.CtStatementList;
+import spoon.reflect.declaration.CtAnnotation;
 import spoon.reflect.declaration.CtCompilationUnit;
 import spoon.reflect.declaration.CtElement;
 import spoon.reflect.declaration.CtExecutable;
@@ -130,6 +131,13 @@ public class PatchApplication {
                 } else {
                     caseExpressions.add(where, (CtExpression<Object>) toBeInserted);
                 }
+                break;
+            case ANNOTATION:
+                // it is necessary to copy annotations because it returns an unmodifiable list
+                List<CtAnnotation<?>> annotations =
+                        new ArrayList<>(inWhichElement.getAnnotations());
+                annotations.add(where, (CtAnnotation<?>) toBeInserted);
+                inWhichElement.setAnnotations(annotations);
                 break;
             default:
                 inWhichElement.setValueByRole(toBeInserted.getRoleInParent(), toBeInserted);
