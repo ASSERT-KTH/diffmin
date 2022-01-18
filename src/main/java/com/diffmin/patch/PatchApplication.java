@@ -1,5 +1,7 @@
 package com.diffmin.patch;
 
+import static spoon.reflect.path.CtRole.CONTAINED_TYPE;
+
 import com.diffmin.util.Pair;
 import com.diffmin.util.SpoonUtil;
 import gumtree.spoon.builder.CtVirtualElement;
@@ -58,6 +60,20 @@ public class PatchApplication {
     private static void performUpdating(Pair<CtElement, CtElement> updatePatch) {
         CtElement prevNode = updatePatch.getFirst();
         CtElement newNode = updatePatch.getSecond();
+
+        // update type in compilation unit
+        if (prevNode.getRoleInParent() == CONTAINED_TYPE) {
+            CtCompilationUnit inWhichCompilationUnit =
+                    SpoonUtil.getTheOnlyCompilationUnit(prevNode.getParent());
+
+            List<CtType<?>> types = new ArrayList<>(inWhichCompilationUnit.getDeclaredTypes());
+            int indexOfOldType =
+                    inWhichCompilationUnit.getDeclaredTypes().indexOf((CtType<?>) prevNode);
+            types.set(indexOfOldType, (CtType<?>) newNode);
+            inWhichCompilationUnit.setDeclaredTypes(types);
+        }
+
+        // update type in model
         prevNode.replace(newNode);
     }
 
