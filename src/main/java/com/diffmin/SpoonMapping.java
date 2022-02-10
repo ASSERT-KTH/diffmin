@@ -3,7 +3,8 @@ package com.diffmin;
 import com.diffmin.util.Pair;
 import com.github.gumtreediff.matchers.Mapping;
 import com.github.gumtreediff.matchers.MappingStore;
-import com.github.gumtreediff.tree.ITree;
+import com.github.gumtreediff.tree.Tree;
+import com.github.gumtreediff.tree.TypeSet;
 import gumtree.spoon.builder.SpoonGumTreeBuilder;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
@@ -49,11 +50,10 @@ public class SpoonMapping {
                     throw new IllegalStateException();
                 }
                 if (m.first.getType()
-                        != -1) { // -1 is the type given to root node in SpoonGumTreeBuilder
+                        != TypeSet.type("root")) { // -1 is the type given to root node in
+                    // SpoonGumTreeBuilder
                     throw new IllegalStateException(
-                            "non-root node "
-                                    + m.first.toShortString()
-                                    + " had no mapped Spoon object");
+                            "non-root node " + m.first + " had no mapped Spoon object");
                 }
             } else {
                 mapping.put(spoonSrc, spoonDst);
@@ -144,7 +144,7 @@ public class SpoonMapping {
         dstToSrc.put(dst, src);
     }
 
-    private static CtElement getSpoonNode(ITree gumtreeNode) {
+    private static CtElement getSpoonNode(Tree gumtreeNode) {
         return (CtElement) gumtreeNode.getMetadata(SpoonGumTreeBuilder.SPOON_OBJECT);
     }
 
