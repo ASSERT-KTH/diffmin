@@ -7,6 +7,7 @@ import gumtree.spoon.builder.CtWrapper;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import spoon.reflect.code.CtAbstractInvocation;
@@ -71,8 +72,15 @@ public class PatchApplication {
 
         switch (toBeInserted.getRoleInParent()) {
             case STATEMENT:
-                ((CtStatementList) inWhichElement)
-                        .addStatement(where, (CtStatement) toBeInserted.clone());
+                Optional<CtStatement> statement =
+                        ((CtStatementList) inWhichElement)
+                                .getStatements().stream()
+                                        .filter(st -> st == toBeInserted)
+                                        .findFirst();
+                if (statement.isEmpty()) {
+                    ((CtStatementList) inWhichElement)
+                            .addStatement(where, (CtStatement) toBeInserted.clone());
+                }
                 break;
             case ARGUMENT:
                 ((CtAbstractInvocation<?>) inWhichElement)

@@ -135,7 +135,7 @@ public class SpoonMapping {
         } else if (mappedSrc != null) {
             return mappedSrc;
         } else {
-            throw new IllegalArgumentException("Element not mapped: " + e);
+            return null;
         }
     }
 

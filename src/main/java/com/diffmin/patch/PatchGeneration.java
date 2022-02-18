@@ -162,8 +162,16 @@ public class PatchGeneration {
                     }
                 };
         int srcNodeIndex = iUtil.getSrcNodeIndex(insertedNode);
-        CtElement parentElementInPrevModel = mapping.get(insertedNode.getParent());
+        CtElement parentElementInPrevModel = getMappingOfParent(insertedNode, mapping);
         return new ImmutableTriple<>(srcNodeIndex, insertedNode, parentElementInPrevModel);
+    }
+
+    private static CtElement getMappingOfParent(CtElement insertedNode, SpoonMapping mapping) {
+        CtElement parentElementInPrevModel = mapping.get(insertedNode.getParent());
+        if (parentElementInPrevModel == null) {
+            return insertedNode.getParent();
+        }
+        return parentElementInPrevModel;
     }
 
     private interface InsertionUtil {
