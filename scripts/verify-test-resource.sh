@@ -10,6 +10,7 @@ export TERM=xterm
 # Colours for stdout
 RED=$(tput setaf 1)
 GREEN=$(tput setaf 2)
+YELLOW=$(tput setaf 3)
 NC=$(tput sgr0)
 
 # Path to test resources
@@ -32,6 +33,21 @@ status=0
 file_count=0
 compilation_errors=()
 
+should_be_compiled() {
+  local java_file="$1"
+  # shellcheck disable=SC2155
+  local directory_name="$(basename "$(realpath "$(dirname "$java_file")")")"
+
+  if [[ "$directory_name" == "NO_COMPILE_"* ]]; then
+    printf "%bSkipping compilation of %s%b\n" "$YELLOW" "$(basename "$java_file")" "$NC"
+    # false
+    return 1
+  else
+    # true
+    return 0
+  fi
+}
+
 # Verify if the resources compiles
 compile() {
   # actual path of the test resource
@@ -52,7 +68,7 @@ shopt -s lastpipe
 
 # Find all Java files inside the test resources directory
 find "$TEST_RESOURCES_PATH" -type f -name "*.java" | while read -r file; do
-  compile "$file"
+  should_be_compiled "$file" && compile "$file"
   file_count=$((file_count+1))
 done
 
