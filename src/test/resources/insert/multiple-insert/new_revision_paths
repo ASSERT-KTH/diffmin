@@ -6,3 +6,4 @@
 #containedType[name=TreeTraversal]#nestedType[name=TreeNode]#constructor[signature=(int)]#body#statement[index=2]
 #containedType[name=TreeTraversal]#method[signature=levelOrder(TreeTraversal$TreeNode)]#body#statement[index=3]#body#statement[index=1]
 #containedType[name=TreeTraversal]#method[signature=levelOrder(TreeTraversal$TreeNode)]#body#statement[index=3]#body#statement[index=2]#body#statement[index=3]
+#containedType[name=TreeTraversal]#nestedType[name=TreeNode]#constructor[signature=(int)]#body#statement[index=1]

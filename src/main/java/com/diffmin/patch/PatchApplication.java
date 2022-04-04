@@ -71,8 +71,11 @@ public class PatchApplication {
 
         switch (toBeInserted.getRoleInParent()) {
             case STATEMENT:
-                ((CtStatementList) inWhichElement)
-                        .addStatement(where, (CtStatement) toBeInserted.clone());
+                if (!doesElementAlreadyExist(
+                        toBeInserted, ((CtStatementList) inWhichElement).getStatements())) {
+                    ((CtStatementList) inWhichElement)
+                            .addStatement(where, (CtStatement) toBeInserted.clone());
+                }
                 break;
             case ARGUMENT:
                 ((CtAbstractInvocation<?>) inWhichElement)
@@ -143,6 +146,19 @@ public class PatchApplication {
                 inWhichElement.setValueByRole(toBeInserted.getRoleInParent(), toBeInserted);
                 break;
         }
+    }
+
+    /**
+     * Handles the case where some elements are already inserted because of the presence of an
+     * insert operation on a parent node. We ignore the insertion when the node is part of the move
+     * operation.
+     *
+     * <p>ToDo: A better fix to this workaround would be to write a custom action classifier in
+     * gumtree-spoon so that move is split into insert and delete.
+     */
+    private static boolean doesElementAlreadyExist(
+            CtElement toBeInserted, List<? extends CtElement> collectionList) {
+        return collectionList.stream().anyMatch(element -> element == toBeInserted);
     }
 
     private static void performMovement(

@@ -12,6 +12,7 @@ import gumtree.spoon.diff.operations.Operation;
 import gumtree.spoon.diff.operations.UpdateOperation;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.IntStream;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import spoon.reflect.code.CtAbstractInvocation;
@@ -162,8 +163,16 @@ public class PatchGeneration {
                     }
                 };
         int srcNodeIndex = iUtil.getSrcNodeIndex(insertedNode);
-        CtElement parentElementInPrevModel = mapping.get(insertedNode.getParent());
+        CtElement parentElementInPrevModel = getMappingOfParent(insertedNode, mapping);
         return new ImmutableTriple<>(srcNodeIndex, insertedNode, parentElementInPrevModel);
+    }
+
+    private static CtElement getMappingOfParent(CtElement insertedNode, SpoonMapping mapping) {
+        Optional<CtElement> parentElementInPrevModel = mapping.get(insertedNode.getParent());
+        if (parentElementInPrevModel.isEmpty()) {
+            return insertedNode.getParent();
+        }
+        return parentElementInPrevModel.get();
     }
 
     private interface InsertionUtil {

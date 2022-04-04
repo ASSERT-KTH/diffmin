@@ -3,12 +3,14 @@ package com.diffmin;
 import com.diffmin.util.Pair;
 import com.github.gumtreediff.matchers.Mapping;
 import com.github.gumtreediff.matchers.MappingStore;
-import com.github.gumtreediff.tree.ITree;
+import com.github.gumtreediff.tree.Tree;
+import com.github.gumtreediff.tree.TypeSet;
 import gumtree.spoon.builder.SpoonGumTreeBuilder;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import spoon.reflect.declaration.CtElement;
 
@@ -48,12 +50,9 @@ public class SpoonMapping {
                 if (spoonSrc != spoonDst) { // at least one was non-null
                     throw new IllegalStateException();
                 }
-                if (m.first.getType()
-                        != -1) { // -1 is the type given to root node in SpoonGumTreeBuilder
+                if (m.first.getType() != TypeSet.type("root")) {
                     throw new IllegalStateException(
-                            "non-root node "
-                                    + m.first.toShortString()
-                                    + " had no mapped Spoon object");
+                            "non-root node " + m.first + " had no mapped Spoon object");
                 }
             } else {
                 mapping.put(spoonSrc, spoonDst);
@@ -126,16 +125,16 @@ public class SpoonMapping {
      * @param e The element to fetch a mapped element for
      * @return The mapped element
      */
-    public CtElement get(CtElement e) {
+    public Optional<CtElement> get(CtElement e) {
         CtElement mappedDst = srcToDst.get(e);
         CtElement mappedSrc = dstToSrc.get(e);
 
         if (mappedDst != null) {
-            return mappedDst;
+            return Optional.of(mappedDst);
         } else if (mappedSrc != null) {
-            return mappedSrc;
+            return Optional.of(mappedSrc);
         } else {
-            throw new IllegalArgumentException("Element not mapped: " + e);
+            return Optional.empty();
         }
     }
 
@@ -144,7 +143,7 @@ public class SpoonMapping {
         dstToSrc.put(dst, src);
     }
 
-    private static CtElement getSpoonNode(ITree gumtreeNode) {
+    private static CtElement getSpoonNode(Tree gumtreeNode) {
         return (CtElement) gumtreeNode.getMetadata(SpoonGumTreeBuilder.SPOON_OBJECT);
     }
 
