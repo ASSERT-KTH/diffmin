@@ -1,0 +1,4 @@
+#containedType[name=Invocation]#method[signature=checkForSign()]#body#statement[index=0]#then
+#containedType[name=Invocation]#method[signature=checkForSign()]#body#statement[index=0]#then#statement[index=0]
+#containedType[name=Invocation]#method[signature=checkForSign()]#body#statement[index=0]#else#statement[index=0]#then
+#containedType[name=Invocation]#method[signature=checkForSign()]#body#statement[index=0]#else#statement[index=0]#else#statement[index=0]
